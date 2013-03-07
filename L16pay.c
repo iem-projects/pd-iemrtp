@@ -140,7 +140,7 @@ static void L16pay_preparePacket(t_L16pay*x) {
   // finally write the RTP_HEADER
   offset=0;
   for(i=0; i<packetcount; i++) {
-    t_atom*ap=x->x_buffer[offset];
+    t_atom*ap=x->x_buffer+offset;
 
     offset+=x->x_packetsize[i];
   }
@@ -191,7 +191,7 @@ static void L16pay_dsp(t_L16pay *x, t_signal **sp)
   x->x_vecsize=n;
 
   for(i=0; i<n; i++) {
-    x->x_in[i]=sp[i];
+    x->x_in[i]=sp[i]->s_vec;
   }
 
 
