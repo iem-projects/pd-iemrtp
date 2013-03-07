@@ -78,94 +78,113 @@ typedef struct _L16pay
 {
 	t_object x_obj;
   t_sample**x_in;
-  unsigned int x_channels;
-  unsigned int x_vecsize;
-  unsigned int x_mtu;
+  u_int32 x_channels;  // number of channels
+  u_int32 x_vecsize;   // Pd's blocksize
+  u_int32 x_mtu;       // MTU of the socket
 
-  unsigned char x_pt; // payload type: 96
-  unsigned int x_seqnum;
-  unsigned int x_timestamp;
+  t_rtpheader  x_rtpheader; // the RTP-header
+  u_int32 x_rtpheadersize; // the size of the RTP-header
 
-  unsigned int x_packets;
-  unsigned int*x_packetsize;
+  /* buffer to store the bytes into */
+  u_int8*x_buffer;
+  u_int32 x_buffersize;
 
-  t_atom*x_buffer;
-  unsigned int x_buffersize;
+  /* buffer for outputting bytes as list */
+  t_atom*x_atombuffer;
+  u_int32 x_atombuffersize;
+  t_clock*x_clock;
+
+  /* packetizing */
+  u_int32 x_payload;
 } t_L16pay;
 
-static int header2atoms(void*rtpheader, t_atom*ap) {
-  unsigned char*bytes=(unsigned char*)rtpheader;
-  unsigned i;
-  for(i=0; i<sizeof(t_rtpheader); i++) {
-    ap[i].a_w.w_float=bytes[i];
+typedef union {
+  u_int32 i;
+  u_int8  b[4];
+} t_uint32bytes;
+
+static inline u_int32 uint32bytes2atoms(u_int32 ival, t_atom*ap) {
+  u_int32 i=0;
+  t_uint32bytes v;
+  v.i=ival;
+#if BYTE_ORDER == LITTLE_ENDIAN
+   ap[i++].a_w.w_float=v.b[3];
+   ap[i++].a_w.w_float=v.b[2];
+   ap[i++].a_w.w_float=v.b[1];
+   ap[i++].a_w.w_float=v.b[0];
+#else
+   ap[i++].a_w.w_float=v.b[0];
+   ap[i++].a_w.w_float=v.b[1];
+   ap[i++].a_w.w_float=v.b[2];
+   ap[i++].a_w.w_float=v.b[3];
+#endif
+  return sizeof(v);
+}
+static inline u_int32 header2atoms(t_rtpheader*rtpheader, t_atom*ap0) {
+  u_int8*bytes=(u_int8*)rtpheader;
+  t_atom*ap=ap0;
+  u_int32 i=0, j;
+#if BYTE_ORDER == LITTLE_ENDIAN
+  ap++->a_w.w_float=bytes[1];
+  ap++->a_w.w_float=bytes[0];
+  ap++->a_w.w_float=bytes[3];
+  ap++->a_w.w_float=bytes[2];
+#else
+  ap++->a_w.w_float=bytes[0];
+  ap++->a_w.w_float=bytes[1];
+  ap++->a_w.w_float=bytes[2];
+  ap++->a_w.w_float=bytes[3];
+#endif
+  i=4;
+  ap+=uint32bytes2atoms(rtpheader->ts, ap); i+=4;
+  ap+=uint32bytes2atoms(rtpheader->ssrc, ap); i+=4;
+
+  for(j=0; j<rtpheader->cc; j++) {
+    ap+=uint32bytes2atoms(rtpheader->csrc[j], ap); i+=4;
+
   }
+
+#if 0
+  for(j=0; j<i; j++) {
+    int x=atom_getint(ap0+j);
+    unsigned char c=x;
+    if(0==j%4)startpost(" "); startpost("%02x", c);
+  } endpost();
+#endif
+
   return i;
 }
 
 static void L16pay_preparePacket(t_L16pay*x) {
-  unsigned int channels = x->x_channels;
-  unsigned int mtu      = x->x_mtu;
-  unsigned int vecsize  = x->x_vecsize;
+  u_int32 payload; // number of bytes in a single block
 
-  unsigned int payload; // number of bytes in a single block
-  unsigned int maxpayloadperpacket; // maximum payload in each packet
+  payload=x->x_channels * x->x_vecsize * RTP_BYTESPERSAMPLE; // number of bytes in a single block
 
-  unsigned int packetcount;
+  post("L16pay: channels=%d/%d @ %d", x->x_channels, x->x_vecsize, x->x_mtu);
+  post("\tpayload: %d"              , payload);
 
-  unsigned int i, totalsize, lastsize;
-  unsigned int offset;
-
-  payload=channels * vecsize * RTP_BYTESPERSAMPLE; // number of bytes in a single block
-  maxpayloadperpacket = mtu - (RTP_HEADERSIZE+100);
-  maxpayloadperpacket = (maxpayloadperpacket>>3)<<3; // 8 byte alignment
-  packetcount = (payload / maxpayloadperpacket) + 1;
-
-  post("L16pay: channels=%d/%d @ %d", channels, vecsize, mtu);
-  post("\tpayload: %d", payload);
-  post("\tpackets: %d*%d", packetcount, maxpayloadperpacket);
-
-  /* store packet sizes */
-  if(x->x_packetsize) {
-    freebytes(x->x_packetsize, x->x_packets*sizeof(*(x->x_packetsize)));
+  /* get buffer for payload */
+  if(x->x_buffersize<payload) {
+    if(x->x_buffer)freebytes(x->x_buffer, x->x_buffersize);
+    x->x_buffersize=payload;
+    x->x_buffer = getbytes(x->x_buffersize);
   }
-  x->x_packets = packetcount;
-  x->x_packetsize=getbytes(x->x_packets*sizeof(*(x->x_packetsize)));
+  x->x_payload=payload;
 
-  totalsize=0;
-  for(i=0; i<(packetcount-1); i++) {
-    x->x_packetsize[i]=maxpayloadperpacket;
-    totalsize+=maxpayloadperpacket;
-  }
-  // LATER: make the last packet 8 byte align as well
-  lastsize=(payload+packetcount*RTP_HEADERSIZE)-totalsize;
-  x->x_packetsize[packetcount-1]=lastsize;
-  totalsize+=lastsize;
+  if(x->x_atombuffersize < x->x_mtu) {
+    u_int32 i;
+    if(x->x_atombuffer)
+      freebytes(x->x_atombuffer, x->x_atombuffersize * sizeof(t_atom));
+    x->x_atombuffersize = x->x_mtu;
+    x->x_atombuffer = getbytes(x->x_atombuffersize * sizeof(t_atom));
 
-  for(i=0; i<packetcount; i++) {
-    post("\t size[%d]=%d", i, x->x_packetsize[i]);
-  }
-
-  if(x->x_buffersize < (totalsize)) {
-
-    if(x->x_buffer)
-      freebytes(x->x_buffer, x->x_buffersize * sizeof(t_atom));
-    x->x_buffersize = totalsize;
-    x->x_buffer = getbytes(x->x_buffersize * sizeof(t_atom));
-
-    for(i=0; i<totalsize; i++) {
-      SETFLOAT(x->x_buffer+i, 0);
+    // initialize the buffers with floats,
+    // so we don't have to repeatedly set the atomtype later
+    for(i=0; i<x->x_atombuffersize; i++) {
+      SETFLOAT(x->x_atombuffer+i, 0);
     }
   }
-  post("\tbufsize: %d", x->x_buffersize);
-
-  // finally write the RTP_HEADER
-  offset=0;
-  for(i=0; i<packetcount; i++) {
-    t_atom*ap=x->x_buffer+offset;
-
-    offset+=x->x_packetsize[i];
-  }
-
+  post("\tbufsize: %d", x->x_atombuffersize);
 }
 
 
@@ -176,30 +195,74 @@ static void L16pay_preparePacket(t_L16pay*x) {
 
 static t_int *L16pay_perform(t_int *w)
 {
-	t_L16pay* x = (t_L16pay*)(w[1]);
-  int vecsize = x->x_vecsize;
   const t_sample scale = 32767.;
-  unsigned int i;
-  unsigned int c=x->x_channels;
-	for (i=0;i<c;i++) {
-		t_sample*in = x->x_in[i];
-    int n;
-    for(n=0; n<vecsize; n++) {
-      short out;
-      int s = in[n] * scale;
-      if      (s > 32767) s = 32767;
-      else if (s <-32767) s =-32767;
+	t_L16pay* x = (t_L16pay*)(w[1]);
+  u_int32 n, vecsize = x->x_vecsize;
+  u_int32 c, channels=x->x_channels;
+  t_sample**ins=x->x_in;
+  short*buffer=(short*)x->x_buffer;
+
+  for(n=0; n<vecsize; n++) {
+    for (c=0;c<channels;c++) {
+      short s = ins[c][n] * scale;
       /* convert to big-endian */
-#ifdef BIG_ENDIAN
-      out=s;
-#else
-      tmp=(s << 8) | (s >> 8);
+#ifdef LITTLE_ENDIAN
+      s=(s << 8) | (s >> 8);
 #endif
-
-
+      *buffer++=s;
     }
   }
+  clock_delay(x->x_clock, 0);
 	return(w+2);
+}
+
+#define EMPTYPACKETBYTES 100
+static void L16pay_tick(t_L16pay *x) {      /* callback function for the clock */
+  u_int8*buffer=x->x_buffer;
+  int payload=x->x_payload;
+  u_int32 mtu = x->x_mtu;
+  u_int32 channels = x->x_channels;
+
+  while(payload>0) {
+    u_int32 headersize;
+    u_int32 packetsize;
+    u_int32 frames;
+    t_atom*ap;
+    u_int32 j;
+
+    headersize=header2atoms(&x->x_rtpheader, x->x_atombuffer);
+    x->x_rtpheadersize=headersize;
+
+    /* 1st guess at headersize */
+    packetsize  = mtu - headersize;
+    if(packetsize > (u_int32)payload) {
+      /* last packet */
+      packetsize = payload;
+    } else {
+      /* don't fill the packet to the rim (so give some bytes extra) */
+      if(packetsize>EMPTYPACKETBYTES*2) packetsize-=EMPTYPACKETBYTES;
+    }
+    /* number of frames fitting into a package */
+    frames=packetsize / (channels * RTP_BYTESPERSAMPLE);
+    /* actual packetsize, with full frames */
+    packetsize = frames * (channels * RTP_BYTESPERSAMPLE);
+
+    if(packetsize<1) {
+      pd_error(x, "oops, empty packet...");
+      return;
+    }
+
+    ap=x->x_atombuffer + headersize;
+    for(j=0; j<packetsize; j++) {
+      ap[j].a_w.w_float=*buffer++;
+    }
+    outlet_list(x->x_obj.ob_outlet, &s_list, headersize+packetsize, x->x_atombuffer);
+
+    x->x_rtpheader.seq +=1;
+    x->x_rtpheader.ts  +=frames;
+
+    payload-=packetsize;
+  }
 }
 
 
@@ -207,14 +270,14 @@ static t_int *L16pay_perform(t_int *w)
 
 static void L16pay_dsp(t_L16pay *x, t_signal **sp)
 {
-  int n=sp[0]->s_n, i;
+  u_int32 c;
 
-  x->x_vecsize=n;
+  x->x_vecsize=sp[0]->s_n;
+  L16pay_preparePacket(x);
 
-  for(i=0; i<n; i++) {
-    x->x_in[i]=sp[i]->s_vec;
+  for(c=0; c<x->x_channels; c++) {
+    x->x_in[c]=sp[c]->s_vec;
   }
-
 
   dsp_add(L16pay_perform, 1, x);
 }
@@ -222,8 +285,8 @@ static void L16pay_dsp(t_L16pay *x, t_signal **sp)
 static void L16pay_MTU(t_L16pay *x, t_floatarg f)
 {
 	int t = f;
-  if(f<RTP_HEADERSIZE) {
-    pd_error(x, "MTU-size (%d) must not be smaller than %d", t, RTP_HEADERSIZE);
+  if(f<x->x_rtpheadersize) {
+    pd_error(x, "MTU-size (%d) must not be smaller than %d", t, x->x_rtpheadersize);
   } else {
     x->x_mtu = t;
   }
@@ -244,33 +307,45 @@ static void *L16pay_new(t_floatarg fchan)
 	x->x_channels = ichan;
   x->x_vecsize  = 1024;
   x->x_mtu      = 1500;
-  x->x_buffer   = NULL;
-  x->x_buffersize=0;
-  x->x_packetsize=NULL;
-  x->x_packets  = 0;
+  x->x_atombuffer    = NULL;
+  x->x_atombuffersize= 0;
+  x->x_buffer        = NULL;
+  x->x_buffersize    = 0;
 
-  x->x_pt = 96;
-  x->x_seqnum = 0;
-  x->x_timestamp = 0;
+  x->x_clock=clock_new(x, (t_method)L16pay_tick);
+
+  x->x_rtpheader.version  = 2;
+  x->x_rtpheader.p  = 0;
+  x->x_rtpheader.x  = 0;
+  x->x_rtpheader.cc = 0;
+  x->x_rtpheader.m  = 1;
+  x->x_rtpheader.pt = 96;
+  x->x_rtpheader.seq = 0;
+  x->x_rtpheader.ts = 0;
+  x->x_rtpheader.ssrc = 0;
+  x->x_rtpheader.csrc = 0;
+
+  x->x_rtpheadersize=sizeof(x->x_rtpheader);
 
   L16pay_preparePacket(x);
 
+  x->x_in = getbytes(x->x_channels * sizeof(t_sample*));
 
 	while (--c) {
 		inlet_new(&x->x_obj, &x->x_obj.ob_pd, gensym("signal"), gensym("signal")); /* channels inlet */
 	}
 	outlet_new(&x->x_obj, gensym("list"));
 
-
-
 	return (x);
 }
 
 
 
-static void L16pay_free(t_L16pay *x)
-{
-
+static void L16pay_free(t_L16pay *x) {
+  if(x->x_buffer)     freebytes(x->x_buffer    , x->x_buffersize);
+  if(x->x_atombuffer) freebytes(x->x_atombuffer, x->x_atombuffersize * sizeof(*(x->x_atombuffer)));
+  if(x->x_in)         freebytes(x->x_in        , x->x_channels       * sizeof(t_sample*));
+  if(x->x_clock)      clock_free(x->x_clock);
 }
 
 void L16pay_setup(void)
