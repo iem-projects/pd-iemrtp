@@ -29,7 +29,8 @@
 #ifdef _MSC_VER
 /* _MSVC lacks BYTE_ORDER and LITTLE_ENDIAN */
 #define LITTLE_ENDIAN 0x0001
-#define BYTE_ORDER LITTLE_ENDIAN
+#define BIG_ENDIAN    0x0002
+#define BYTE_ORDER    LITTLE_ENDIAN
 #endif
 #if !defined(BYTE_ORDER) || !defined(LITTLE_ENDIAN)
 #error No byte order defined
