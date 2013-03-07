@@ -45,16 +45,33 @@ typedef unsigned int u_int32;
 static t_class *L16pay_class;
 
 typedef struct _rtpheader {
-  unsigned int V        :  2; // version (2)
-  unsigned int P        :  1; // padding (0)
-  unsigned int X        :  1; // extension (0)
-  unsigned int CC       :  4; // CSRC count (0, or else we need to add CSRC fields after SSRC)
-  unsigned int M        :  1; // marker (1 for the 1st packet of a frame; 0 for the rest)
-  unsigned int PT       :  7; // payload type (96)
-  unsigned short seq    : 16; // sequence number (++)
-  unsigned int timestamp: 32; // timestamp
-  unsigned int SSRC     : 32; // sync source identifier
-
+#if BYTE_ORDER == LITTLE_ENDIAN
+  /* byte#2 */
+  unsigned int pt:7;        /* payload type */
+  unsigned int m:1;         /* marker bit */
+  /* byte#1 */
+  unsigned int cc:4;        /* CSRC count */
+  unsigned int x:1;         /* header extension flag */
+  unsigned int p:1;         /* padding flag */
+  unsigned int version:2;   /* protocol version */
+#else
+  /* byte#1 */
+  unsigned int version:2;   /* protocol version */
+  unsigned int p:1;         /* padding flag */
+  unsigned int x:1;         /* header extension flag */
+  unsigned int cc:4;        /* CSRC count */
+  /* byte#2 */
+  unsigned int m:1;         /* marker bit */
+  unsigned int pt:7;        /* payload type */
+#endif
+  /* byte#3-4 */
+  unsigned int seq:16;      /* sequence number */
+  /* byte#5-8 */
+  u_int32 ts;               /* timestamp */
+  /* byte#9-12 */
+  u_int32 ssrc;             /* synchronization source */
+  /* optional byte#13...(12+pt*4) */
+  u_int32*csrc;             /* optional CSRC list */
 } t_rtpheader;
 
 typedef struct _L16pay
