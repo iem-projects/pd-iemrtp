@@ -40,6 +40,19 @@
 
 static t_class *L16pay_class;
 
+typedef struct _rtpheader {
+  unsigned int V        :  2; // version (2)
+  unsigned int P        :  1; // padding (0)
+  unsigned int X        :  1; // extension (0)
+  unsigned int CC       :  4; // CSRC count (0, or else we need to add CSRC fields after SSRC)
+  unsigned int M        :  1; // marker (1 for the 1st packet of a frame; 0 for the rest)
+  unsigned int PT       :  7; // payload type (96)
+  unsigned short seq    : 16; // sequence number (++)
+  unsigned int timestamp: 32; // timestamp
+  unsigned int SSRC     : 32; // sync source identifier
+
+} t_rtpheader;
+
 typedef struct _L16pay
 {
 	t_object x_obj;
@@ -58,6 +71,15 @@ typedef struct _L16pay
   t_atom*x_buffer;
   unsigned int x_buffersize;
 } t_L16pay;
+
+static int header2atoms(void*rtpheader, t_atom*ap) {
+  unsigned char*bytes=(unsigned char*)rtpheader;
+  unsigned i;
+  for(i=0; i<sizeof(t_rtpheader); i++) {
+    ap[i].a_w.w_float=bytes[i];
+  }
+  return i;
+}
 
 static void L16pay_preparePacket(t_L16pay*x) {
   unsigned int channels = x->x_channels;
