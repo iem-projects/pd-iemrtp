@@ -22,6 +22,19 @@
 #include <string.h>
 #include <fcntl.h>
 
+#if defined(__linux__) || defined(__CYGWIN__) || defined(__GNU__) || \
+    defined(ANDROID)
+#include <endian.h>
+#endif
+#ifdef _MSC_VER
+/* _MSVC lacks BYTE_ORDER and LITTLE_ENDIAN */
+#define LITTLE_ENDIAN 0x0001
+#define BYTE_ORDER LITTLE_ENDIAN
+#endif
+#if !defined(BYTE_ORDER) || !defined(LITTLE_ENDIAN)
+#error No byte order defined
+#endif
+
 #define RTP_HEADERSIZE 13
 
 static t_class *L16pay_class;
@@ -41,17 +54,6 @@ typedef struct _L16pay
   t_atom*x_buffer;
   unsigned int x_buffersize;
 } t_L16pay;
-
-/* like the one from garray */
-static int L16pay_am_i_big_endian(void) 
-{
-	unsigned short s = 1;
-	unsigned char c = *(char *) (&s);
-#ifdef DEBUG_ME
-	post("i am %s-endian", c?"little":"big");
-#endif
-	return(c==0);
-}
 
 static void L16pay_MTU(t_L16pay *x, t_floatarg f)
 {
