@@ -1,5 +1,5 @@
 #N canvas 1503 474 450 300 10;
-#X obj 172 120 L16pay 40;
+#X obj 172 120 L16pay 2;
 #X obj 304 151 -;
 #X obj 304 173 * 4;
 #X floatatom 304 195 5 0 0 0 - - -;
