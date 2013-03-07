@@ -23,12 +23,12 @@ static t_class *rtpinfo_class;
 typedef struct _rtpinfo
 {
 	t_object x_obj;
-  t_rtpheader x_rtpinfo;
+  t_rtpheader x_rtpheader;
 } t_rtpinfo;
 
 static void rtpinfo_bang(t_rtpinfo*x){
   t_atom ap[2];
-  t_rtpheader*rtp=&x->x_rtpinfo;
+  t_rtpheader*rtp=&x->x_rtpheader;
   unsigned int version = rtp->version;
   unsigned int cc = rtp->cc, c;
   SETFLOAT(ap+0, version);
