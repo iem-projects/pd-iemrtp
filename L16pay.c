@@ -39,6 +39,9 @@
 #define RTP_HEADERSIZE 13
 #define RTP_BYTESPERSAMPLE 2
 
+typedef unsigned char u_int8;
+typedef unsigned int u_int32;
+
 static t_class *L16pay_class;
 
 typedef struct _rtpheader {
