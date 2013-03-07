@@ -114,9 +114,10 @@ static inline u_int32 header2atoms(t_rtpheader*rtpheader, t_atom*ap0) {
     ap+=uint32bytes2atoms(rtpheader->csrc[j], ap); i+=4;
 
   }
-
   return i;
 }
-
-
-
+static u_int32 SETUINT32(t_atom*ap, u_int32 i) {
+  SETFLOAT(ap+0, ((i>>16)&0xFFFF));
+  SETFLOAT(ap+1, ((i>> 0)&0xFFFF));
+  return 2;
+}
