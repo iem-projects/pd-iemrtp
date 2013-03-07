@@ -78,6 +78,7 @@ typedef struct _L16pay
 {
 	t_object x_obj;
   t_sample**x_in;
+  u_int8 x_running;
   u_int32 x_channels;  // number of channels
   u_int32 x_vecsize;   // Pd's blocksize
   u_int32 x_mtu;       // MTU of the socket
@@ -202,6 +203,8 @@ static t_int *L16pay_perform(t_int *w)
   t_sample**ins=x->x_in;
   short*buffer=(short*)x->x_buffer;
 
+  if(!x->x_running)return(w+2);
+
   for(n=0; n<vecsize; n++) {
     for (c=0;c<channels;c++) {
       short s = ins[c][n] * scale;
@@ -292,6 +295,12 @@ static void L16pay_MTU(t_L16pay *x, t_floatarg f)
   }
 }
 
+static void L16pay_start(t_L16pay *x) {
+  x->x_running=1;
+}
+static void L16pay_stop(t_L16pay *x) {
+  x->x_running=0;
+}
 
 
 /* create L16pay with args <channels> <skip> */
@@ -356,4 +365,6 @@ void L16pay_setup(void)
 	class_addmethod(L16pay_class, (t_method)L16pay_dsp, gensym("dsp"), 0);
 
 	class_addmethod(L16pay_class, (t_method)L16pay_MTU, gensym("mtu"), A_FLOAT, 0);
+	class_addmethod(L16pay_class, (t_method)L16pay_start, gensym("start"), 0);
+	class_addmethod(L16pay_class, (t_method)L16pay_stop , gensym("stop" ), 0);
 }
