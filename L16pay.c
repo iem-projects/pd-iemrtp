@@ -261,8 +261,9 @@ static void L16pay_tick(t_L16pay *x) {      /* callback function for the clock *
     }
     outlet_list(x->x_obj.ob_outlet, &s_list, headersize+packetsize, x->x_atombuffer);
 
-    x->x_rtpheader.seq +=1;
-    x->x_rtpheader.ts  +=frames;
+    x->x_rtpheader.seq += 1;
+    x->x_rtpheader.ts  += frames;
+    x->x_rtpheader.m    = 0;
 
     payload-=packetsize;
   }
