@@ -1,4 +1,4 @@
-/* 
+/*
  * L16pay: RTP-playloader for L16
  *
  * (c) 2013 IOhannes m zmölnig, institute of electronic music and acoustics (iem)
@@ -7,12 +7,12 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -47,9 +47,12 @@ typedef struct _L16pay
   unsigned int x_vecsize;
   unsigned int x_mtu;
 
+  unsigned char x_pt; // payload type: 96
+  unsigned int x_seqnum;
+  unsigned int x_timestamp;
 
-
-  unsigned int x_packetsize;
+  unsigned int x_packets;
+  unsigned int*x_packetsize;
 
   t_atom*x_buffer;
   unsigned int x_buffersize;
@@ -117,7 +120,7 @@ static t_int *L16pay_perform(t_int *w)
 #else
       tmp=(s << 8) | (s >> 8);
 #endif
-      
+
 
     }
   }
@@ -136,7 +139,7 @@ static void L16pay_dsp(t_L16pay *x, t_signal **sp)
   for(i=0; i<n; i++) {
     x->x_in[i]=sp[i];
   }
-  
+
 
   dsp_add(L16pay_perform, 1, x);
 }
@@ -153,10 +156,16 @@ static void *L16pay_new(t_floatarg fchan)
   c=ichan;
 
 	x->x_channels = ichan;
-  x->x_vecsize  = 64;
+  x->x_vecsize  = 1024;
   x->x_mtu      = 1500;
   x->x_buffer   = NULL;
   x->x_buffersize=0;
+  x->x_packetsize=NULL;
+  x->x_packets  = 0;
+
+  x->x_pt = 96;
+  x->x_seqnum = 0;
+  x->x_timestamp = 0;
 
   L16pay_preparePacket(x);
 
