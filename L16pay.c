@@ -36,6 +36,7 @@
 #endif
 
 #define RTP_HEADERSIZE 13
+#define RTP_BYTESPERSAMPLE 2
 
 static t_class *L16pay_class;
 
@@ -72,24 +73,64 @@ static void L16pay_preparePacket(t_L16pay*x) {
   unsigned int mtu      = x->x_mtu;
   unsigned int vecsize  = x->x_vecsize;
 
-  unsigned int payload=channels * vecsize * 2; // number of bytes in a single block
-  unsigned int packetcount = (payload / (mtu - (RTP_HEADERSIZE + 100 ))) + 1;
+  unsigned int payload; // number of bytes in a single block
+  unsigned int maxpayloadperpacket; // maximum payload in each packet
 
-  unsigned int packetsize = RTP_HEADERSIZE+ (payload/packetcount);
+  unsigned int packetcount;
+
+  unsigned int i, totalsize, lastsize;
+  unsigned int offset;
+
+  payload=channels * vecsize * RTP_BYTESPERSAMPLE; // number of bytes in a single block
+  maxpayloadperpacket = mtu - (RTP_HEADERSIZE+100);
+  maxpayloadperpacket = (maxpayloadperpacket>>3)<<3; // 8 byte alignment
+  packetcount = (payload / maxpayloadperpacket) + 1;
 
   post("L16pay: channels=%d/%d @ %d", channels, vecsize, mtu);
   post("\tpayload: %d", payload);
-  post("\tpackets: %d*%d", packetcount, packetsize);
+  post("\tpackets: %d*%d", packetcount, maxpayloadperpacket);
 
-  x->x_packetsize = packetsize;
+  /* store packet sizes */
+  if(x->x_packetsize) {
+    freebytes(x->x_packetsize, x->x_packets*sizeof(*(x->x_packetsize)));
+  }
+  x->x_packets = packetcount;
+  x->x_packetsize=getbytes(x->x_packets*sizeof(*(x->x_packetsize)));
 
-  if(x->x_buffersize < (packetsize*packetcount)) {
+  totalsize=0;
+  for(i=0; i<(packetcount-1); i++) {
+    x->x_packetsize[i]=maxpayloadperpacket;
+    totalsize+=maxpayloadperpacket;
+  }
+  // LATER: make the last packet 8 byte align as well
+  lastsize=(payload+packetcount*RTP_HEADERSIZE)-totalsize;
+  x->x_packetsize[packetcount-1]=lastsize;
+  totalsize+=lastsize;
+
+  for(i=0; i<packetcount; i++) {
+    post("\t size[%d]=%d", i, x->x_packetsize[i]);
+  }
+
+  if(x->x_buffersize < (totalsize)) {
+
     if(x->x_buffer)
       freebytes(x->x_buffer, x->x_buffersize * sizeof(t_atom));
-    x->x_buffersize = packetsize * packetcount;
+    x->x_buffersize = totalsize;
     x->x_buffer = getbytes(x->x_buffersize * sizeof(t_atom));
+
+    for(i=0; i<totalsize; i++) {
+      SETFLOAT(x->x_buffer+i, 0);
+    }
   }
   post("\tbufsize: %d", x->x_buffersize);
+
+  // finally write the RTP_HEADER
+  offset=0;
+  for(i=0; i<packetcount; i++) {
+    t_atom*ap=x->x_buffer[offset];
+
+    offset+=x->x_packetsize[i];
+  }
 
 }
 
