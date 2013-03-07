@@ -63,8 +63,18 @@ static void rtpinfo_bang(t_rtpinfo*x){
   }
 }
 
-static void rtpinfo_list(t_rtpinfo*x, t_symbol*s, int argc, t_atom*argv){
+static inline int atoms2header(int argc, t_atom*argv, t_rtpheader*rtpheader) {
+  u_int8*bytes=(u_int8*)rtpheader;
+  return -1;
+}
 
+static void rtpinfo_list(t_rtpinfo*x, t_symbol*s, int argc, t_atom*argv){
+  int result=atoms2header(argc, argv, &x->x_rtpheader);
+  if(!result) {
+    rtpinfo_bang(x);
+  } else {
+    pd_error(x, "failed to parse data: is it an RTP-packet?");
+  }
 }
 
 /* create rtpinfo with args <channels> <skip> */
