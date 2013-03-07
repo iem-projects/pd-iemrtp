@@ -59,15 +59,6 @@ typedef struct _L16pay
   unsigned int x_buffersize;
 } t_L16pay;
 
-static void L16pay_MTU(t_L16pay *x, t_floatarg f)
-{
-	int t = f;
-  if(f<RTP_HEADERSIZE) {
-    pd_error(x, "MTU-size (%d) must not be smaller than %d", t, RTP_HEADERSIZE);
-  } else {
-    x->x_mtu = t;
-  }
-}
 static void L16pay_preparePacket(t_L16pay*x) {
   unsigned int channels = x->x_channels;
   unsigned int mtu      = x->x_mtu;
@@ -184,6 +175,17 @@ static void L16pay_dsp(t_L16pay *x, t_signal **sp)
 
   dsp_add(L16pay_perform, 1, x);
 }
+
+static void L16pay_MTU(t_L16pay *x, t_floatarg f)
+{
+	int t = f;
+  if(f<RTP_HEADERSIZE) {
+    pd_error(x, "MTU-size (%d) must not be smaller than %d", t, RTP_HEADERSIZE);
+  } else {
+    x->x_mtu = t;
+  }
+}
+
 
 
 /* create L16pay with args <channels> <skip> */
