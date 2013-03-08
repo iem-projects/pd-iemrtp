@@ -245,9 +245,9 @@ static void L16pay_free(t_L16pay *x) {
   if(x->x_clock)      clock_free(x->x_clock);
 }
 
-void L16pay_setup(void)
+void L16pay_tilde_setup(void)
 {
-	L16pay_class = class_new(gensym("L16pay"), (t_newmethod)L16pay_new, (t_method)L16pay_free,
+	L16pay_class = class_new(gensym("L16pay~"), (t_newmethod)L16pay_new, (t_method)L16pay_free,
 		sizeof(t_L16pay), 0, A_DEFFLOAT,0);
 	class_addmethod(L16pay_class, nullfn, gensym("signal"), 0);
 	class_addmethod(L16pay_class, (t_method)L16pay_dsp, gensym("dsp"), 0);

@@ -1,5 +1,5 @@
 #N canvas 1343 337 800 438 10;
-#X obj 172 120 L16pay 2;
+#X obj 172 120 L16pay~ 2;
 #X msg 51 84 start;
 #X msg 45 117 stop;
 #X obj 47 16 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 1 1
