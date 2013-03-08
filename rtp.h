@@ -199,7 +199,7 @@ static inline int atoms2header(int argc, t_atom*argv, t_rtpheader*rtpheader) {
   rtpheader->pt      = (b >> 0) & 0x7F;
 
   rtpheader->seq  =atombytes_getU16(argv+2);
-  rtpheader->ts   =atombytes_getU16(argv+4);
+  rtpheader->ts   =atombytes_getU32(argv+4);
   rtpheader->ssrc =atombytes_getU32(argv+8);
 
   for(b=0; b<cc; b++) {
