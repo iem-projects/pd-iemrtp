@@ -17,7 +17,7 @@
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "rtp.h"
-
+#include <stdlib.h>
 static t_class *rtpinfo_class;
 
 #define STATIC_INLINE static inline
@@ -65,8 +65,40 @@ static void rtpinfo_bang(t_rtpinfo*x){
   }
 }
 STATIC_INLINE int atoms2header(int argc, t_atom*argv, t_rtpheader*rtpheader) {
+  u_int8  b;
+  u_int8 cc;
+  int retval=12;
 
-  return -1;
+  if(!argc) {
+    return 0;
+  }
+
+  b=atom_getint(argv+0);
+  cc=(b >> 0) & 0x0F;
+  retval=12+cc*4;
+  if(argc<retval) {
+    return -retval;
+  }
+  if(rtpheader->csrc)free(rtpheader->csrc);
+  rtpheader->csrc=malloc(cc * sizeof(u_int32));
+
+  rtpheader->version = (b >> 6) & 0x03;
+  rtpheader->p       = (b >> 5) & 0x01;
+  rtpheader->x       = (b >> 4) & 0x01;
+  rtpheader->cc      = cc;
+
+  b=atom_getint(argv+1);
+  rtpheader->m       = (b >> 7) & 0x01;
+  rtpheader->pt      = (b >> 0) & 0x7F;
+
+  rtpheader->seq  =atombytes_getU16(argv+2);
+  rtpheader->ts   =atombytes_getU16(argv+4);
+  rtpheader->ssrc =atombytes_getU32(argv+8);
+
+  for(b=0; b<cc; b++) {
+    rtpheader->csrc[b]=atombytes_getU32(argv+12+4*b);
+  }
+  return retval;
 }
 
 static void rtpinfo_list(t_rtpinfo*x, t_symbol*s, int argc, t_atom*argv){
