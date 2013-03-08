@@ -20,6 +20,8 @@
 
 static t_class *rtpinfo_class;
 
+#define STATIC_INLINE static inline
+
 typedef struct _rtpinfo
 {
 	t_object x_obj;
@@ -62,9 +64,8 @@ static void rtpinfo_bang(t_rtpinfo*x){
     outlet_anything(x->x_obj.ob_outlet, gensym("CSRC"), 3, ap);
   }
 }
+STATIC_INLINE int atoms2header(int argc, t_atom*argv, t_rtpheader*rtpheader) {
 
-static inline int atoms2header(int argc, t_atom*argv, t_rtpheader*rtpheader) {
-  u_int8*bytes=(u_int8*)rtpheader;
   return -1;
 }
 
