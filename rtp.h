@@ -108,23 +108,6 @@ static inline int atombytes_setU16(u_int16 i, t_atom ap[2]) {
   ap++->a_w.w_float=(i>> 0) & 0xFF;
   return 2;
 }
-static inline u_int32 uint32bytes2atoms(u_int32 ival, t_atom*ap) {
-  u_int32 i=0;
-  t_uint32bytes v;
-  v.i=ival;
-#if BYTE_ORDER == LITTLE_ENDIAN
-   ap[i++].a_w.w_float=v.b[3];
-   ap[i++].a_w.w_float=v.b[2];
-   ap[i++].a_w.w_float=v.b[1];
-   ap[i++].a_w.w_float=v.b[0];
-#else
-   ap[i++].a_w.w_float=v.b[0];
-   ap[i++].a_w.w_float=v.b[1];
-   ap[i++].a_w.w_float=v.b[2];
-   ap[i++].a_w.w_float=v.b[3];
-#endif
-  return sizeof(v);
-}
 
 
 #define RTP_HEADERSIZE 13
@@ -132,16 +115,6 @@ static inline u_int32 uint32bytes2atoms(u_int32 ival, t_atom*ap) {
 #define EMPTYPACKETBYTES 100
 
 typedef struct _rtpheader {
-#if BYTE_ORDER == LITTLE_ENDIAN
-  /* byte#2 */
-  unsigned int pt:7;        /* payload type */
-  unsigned int m:1;         /* marker bit */
-  /* byte#1 */
-  unsigned int cc:4;        /* CSRC count */
-  unsigned int x:1;         /* header extension flag */
-  unsigned int p:1;         /* padding flag */
-  unsigned int version:2;   /* protocol version */
-#else
   /* byte#1 */
   unsigned int version:2;   /* protocol version */
   unsigned int p:1;         /* padding flag */
@@ -150,7 +123,6 @@ typedef struct _rtpheader {
   /* byte#2 */
   unsigned int m:1;         /* marker bit */
   unsigned int pt:7;        /* payload type */
-#endif
   /* byte#3-4 */
   unsigned int seq:16;      /* sequence number */
   /* byte#5-8 */
