@@ -122,3 +122,18 @@ static inline u_int32 SETUINT32(t_atom*ap, u_int32 i) {
   SETFLOAT(ap+1, ((i>> 0)&0xFFFF));
   return 2;
 }
+
+static inline u_int16 atombytes_getU16(t_atom ap[2]) {
+  u_int16 result=0;
+  result<<= 8;result+=atom_getint(ap++);
+  result<<= 8;result+=atom_getint(ap++);
+  return result;
+}
+static inline u_int32 atombytes_getU32(t_atom ap[4]) {
+  u_int32 result=0;
+  result<<= 8;result+=atom_getint(ap++);
+  result<<= 8;result+=atom_getint(ap++);
+  result<<= 8;result+=atom_getint(ap++);
+  result<<= 8;result+=atom_getint(ap++);
+  return result;
+}
