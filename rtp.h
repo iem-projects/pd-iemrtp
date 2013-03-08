@@ -162,29 +162,22 @@ typedef struct _rtpheader {
 } t_rtpheader;
 
 static inline u_int32 header2atoms(t_rtpheader*rtpheader, t_atom*ap0) {
-  u_int8*bytes=(u_int8*)rtpheader;
   t_atom*ap=ap0;
-  u_int32 i=0, j;
-#if BYTE_ORDER == LITTLE_ENDIAN
-  ap++->a_w.w_float=bytes[1];
-  ap++->a_w.w_float=bytes[0];
-  ap++->a_w.w_float=bytes[3];
-  ap++->a_w.w_float=bytes[2];
-#else
-  ap++->a_w.w_float=bytes[0];
-  ap++->a_w.w_float=bytes[1];
-  ap++->a_w.w_float=bytes[2];
-  ap++->a_w.w_float=bytes[3];
-#endif
-  i=4;
-  ap+=uint32bytes2atoms(rtpheader->ts, ap); i+=4;
-  ap+=uint32bytes2atoms(rtpheader->ssrc, ap); i+=4;
+  u_int8 b;
+  u_int32 c, cc=rtpheader->cc;
+  b=(rtpheader->version << 6) | (rtpheader->p << 5) | (rtpheader->x << 4) | (rtpheader->cc << 0);
+  ap++->a_w.w_float=b;
 
-  for(j=0; j<rtpheader->cc; j++) {
-    ap+=uint32bytes2atoms(rtpheader->csrc[j], ap); i+=4;
+  b=(rtpheader->m << 7) | (rtpheader->pt << 0);
+  ap++->a_w.w_float=b;
 
+  ap+=atombytes_setU16(rtpheader->seq, ap);
+  ap+=atombytes_setU32(rtpheader->ts, ap);
+  ap+=atombytes_setU32(rtpheader->ssrc, ap);
+  for(c=0; c < cc; c++) {
+    ap+=atombytes_setU32(rtpheader->csrc[c], ap);
   }
-  return i;
+  return (12+cc*4);
 }
 /**
  * @brief parse a byte-package (atom list) to an rtpheader.
