@@ -71,12 +71,12 @@ STATIC_INLINE int atoms2header(int argc, t_atom*argv, t_rtpheader*rtpheader) {
 
 static void rtpinfo_list(t_rtpinfo*x, t_symbol*s, int argc, t_atom*argv){
   int result=atoms2header(argc, argv, &x->x_rtpheader);
-  if(!result) {
+  if(result>0) {
     rtpinfo_bang(x);
   } else {
-    pd_error(x, "failed to parse data: is it an RTP-packet?");
+    pd_error(x, "list too short to form a valid RTP-packet (expected %d, got %d)",-result, argc);
   }
-}
+    }
 
 /* create rtpinfo with args <channels> <skip> */
 static void *rtpinfo_new(void)
