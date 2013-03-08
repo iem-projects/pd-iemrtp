@@ -90,7 +90,8 @@ static void *rtpinfo_new(void)
 
 
 static void rtpinfo_free(t_rtpinfo *x) {
-
+  free(x->x_rtpheader.csrc);
+  x->x_rtpheader.csrc=NULL;
 }
 
 void rtpinfo_setup(void)
