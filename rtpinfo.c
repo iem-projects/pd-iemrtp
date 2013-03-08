@@ -27,7 +27,7 @@ typedef struct _rtpinfo
 } t_rtpinfo;
 
 static void rtpinfo_bang(t_rtpinfo*x){
-  t_atom ap[2];
+  t_atom ap[4];
   t_rtpheader*rtp=&x->x_rtpheader;
   unsigned int version = rtp->version;
   unsigned int cc = rtp->cc, c;
