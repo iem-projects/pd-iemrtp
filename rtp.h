@@ -32,13 +32,80 @@
 #error No byte order defined
 #endif
 
-#define RTP_HEADERSIZE 13
-#define RTP_BYTESPERSAMPLE 2
-#define EMPTYPACKETBYTES 100
+#include <stdlib.h>
 
+
+/* integer type handling */
 typedef unsigned char  u_int8;
 typedef unsigned short u_int16;
 typedef unsigned int   u_int32;
+
+typedef union {
+  u_int32 i;
+  u_int16 s[2];
+  u_int8  b[4];
+} t_uint32bytes;
+
+
+/**
+ * @brief convert 32bit unsigned integer into a list of Pd
+ *        (using two 16bit unsigned integers)
+ * @param ap pointer to atom-array to store the u_int32 into
+ * @param i  the u_int32 value
+ * @return number of atoms consumed (2)
+ */
+static inline u_int32 SETUINT32(t_atom ap[2], u_int32 i) {
+  SETFLOAT(ap+0, ((i>>16)&0xFFFF));
+  SETFLOAT(ap+1, ((i>> 0)&0xFFFF));
+  return 2;
+}
+/**
+ * @brief read 16bit unsigned integer from byte array (BIG-ENDIAN)
+ * @param ap pointer to atom-array to read u_int16 from
+ * @return the u_int16
+ */
+static inline u_int16 atombytes_getU16(t_atom ap[2]) {
+  u_int16 result=0;
+  result<<= 8;result+=atom_getint(ap++);
+  result<<= 8;result+=atom_getint(ap++);
+  return result;
+}
+/**
+ * @brief read 32bit unsigned integer from byte array (BIG-ENDIAN)
+ * @param ap pointer to atom-array to read u_int32 from
+ * @return the u_int32
+ */
+static inline u_int32 atombytes_getU32(t_atom ap[4]) {
+  u_int32 result=0;
+  result<<= 8;result+=atom_getint(ap++);
+  result<<= 8;result+=atom_getint(ap++);
+  result<<= 8;result+=atom_getint(ap++);
+  result<<= 8;result+=atom_getint(ap++);
+  return result;
+}
+
+static inline u_int32 uint32bytes2atoms(u_int32 ival, t_atom*ap) {
+  u_int32 i=0;
+  t_uint32bytes v;
+  v.i=ival;
+#if BYTE_ORDER == LITTLE_ENDIAN
+   ap[i++].a_w.w_float=v.b[3];
+   ap[i++].a_w.w_float=v.b[2];
+   ap[i++].a_w.w_float=v.b[1];
+   ap[i++].a_w.w_float=v.b[0];
+#else
+   ap[i++].a_w.w_float=v.b[0];
+   ap[i++].a_w.w_float=v.b[1];
+   ap[i++].a_w.w_float=v.b[2];
+   ap[i++].a_w.w_float=v.b[3];
+#endif
+  return sizeof(v);
+}
+
+
+#define RTP_HEADERSIZE 13
+#define RTP_BYTESPERSAMPLE 2
+#define EMPTYPACKETBYTES 100
 
 typedef struct _rtpheader {
 #if BYTE_ORDER == LITTLE_ENDIAN
@@ -70,28 +137,6 @@ typedef struct _rtpheader {
   u_int32*csrc;             /* optional CSRC list */
 } t_rtpheader;
 
-typedef union {
-  u_int32 i;
-  u_int8  b[4];
-} t_uint32bytes;
-
-static inline u_int32 uint32bytes2atoms(u_int32 ival, t_atom*ap) {
-  u_int32 i=0;
-  t_uint32bytes v;
-  v.i=ival;
-#if BYTE_ORDER == LITTLE_ENDIAN
-   ap[i++].a_w.w_float=v.b[3];
-   ap[i++].a_w.w_float=v.b[2];
-   ap[i++].a_w.w_float=v.b[1];
-   ap[i++].a_w.w_float=v.b[0];
-#else
-   ap[i++].a_w.w_float=v.b[0];
-   ap[i++].a_w.w_float=v.b[1];
-   ap[i++].a_w.w_float=v.b[2];
-   ap[i++].a_w.w_float=v.b[3];
-#endif
-  return sizeof(v);
-}
 static inline u_int32 header2atoms(t_rtpheader*rtpheader, t_atom*ap0) {
   u_int8*bytes=(u_int8*)rtpheader;
   t_atom*ap=ap0;
@@ -117,23 +162,48 @@ static inline u_int32 header2atoms(t_rtpheader*rtpheader, t_atom*ap0) {
   }
   return i;
 }
-static inline u_int32 SETUINT32(t_atom*ap, u_int32 i) {
-  SETFLOAT(ap+0, ((i>>16)&0xFFFF));
-  SETFLOAT(ap+1, ((i>> 0)&0xFFFF));
-  return 2;
-}
+/**
+ * @brief parse a byte-package (atom list) to an rtpheader.
+ * @param argc total length of the list
+ * @param argv array of bytes (as atoms)
+ * @param rtpheader pointer to initialized RTP-header, that is used as output.
+ * @note any CSRC array in the rtpheader will be deleted and replaced by CSRC fields found in the byte-package
+ * @return the number of bytes consumed by the header
+ *         on error, 0 or a negative number (minimum expected packet size ) is returned
+ */
+static inline int atoms2header(int argc, t_atom*argv, t_rtpheader*rtpheader) {
+  u_int8  b;
+  u_int8 cc;
+  int retval=12;
 
-static inline u_int16 atombytes_getU16(t_atom ap[2]) {
-  u_int16 result=0;
-  result<<= 8;result+=atom_getint(ap++);
-  result<<= 8;result+=atom_getint(ap++);
-  return result;
-}
-static inline u_int32 atombytes_getU32(t_atom ap[4]) {
-  u_int32 result=0;
-  result<<= 8;result+=atom_getint(ap++);
-  result<<= 8;result+=atom_getint(ap++);
-  result<<= 8;result+=atom_getint(ap++);
-  result<<= 8;result+=atom_getint(ap++);
-  return result;
+  if(!argc) {
+    return -retval;
+  }
+
+  b=atom_getint(argv+0);
+  cc=(b >> 0) & 0x0F;
+  retval=12+cc*4;
+  if(argc<retval) {
+    return -retval;
+  }
+  if(rtpheader->csrc)free(rtpheader->csrc);
+  rtpheader->csrc=malloc(cc * sizeof(u_int32));
+
+  rtpheader->version = (b >> 6) & 0x03;
+  rtpheader->p       = (b >> 5) & 0x01;
+  rtpheader->x       = (b >> 4) & 0x01;
+  rtpheader->cc      = cc;
+
+  b=atom_getint(argv+1);
+  rtpheader->m       = (b >> 7) & 0x01;
+  rtpheader->pt      = (b >> 0) & 0x7F;
+
+  rtpheader->seq  =atombytes_getU16(argv+2);
+  rtpheader->ts   =atombytes_getU16(argv+4);
+  rtpheader->ssrc =atombytes_getU32(argv+8);
+
+  for(b=0; b<cc; b++) {
+    rtpheader->csrc[b]=atombytes_getU32(argv+12+4*b);
+  }
+  return retval;
 }
