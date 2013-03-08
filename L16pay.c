@@ -50,9 +50,6 @@ static void L16pay_preparePacket(t_L16pay*x) {
 
   payload=x->x_channels * x->x_vecsize * RTP_BYTESPERSAMPLE; // number of bytes in a single block
 
-  post("L16pay: channels=%d/%d @ %d", x->x_channels, x->x_vecsize, x->x_mtu);
-  post("\tpayload: %d"              , payload);
-
   /* get buffer for payload */
   if(x->x_buffersize<payload) {
     if(x->x_buffer)freebytes(x->x_buffer, x->x_buffersize);
@@ -108,7 +105,6 @@ static t_int *L16pay_perform(t_int *w)
 	return(w+2);
 }
 
-#define EMPTYPACKETBYTES 100
 static void L16pay_tick(t_L16pay *x) {      /* callback function for the clock */
   u_int8*buffer=x->x_buffer;
   int payload=x->x_payload;
