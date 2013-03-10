@@ -1,5 +1,5 @@
 /*
- * rtpinfo: parse RTP packages to get some info
+ * rtpparse: parse RTP packages to get some info
  *
  * (c) 2013 IOhannes m zmölnig, institute of electronic music and acoustics (iem)
  *
@@ -18,15 +18,15 @@
  */
 #include "rtp.h"
 #include <stdlib.h>
-static t_class *rtpinfo_class;
+static t_class *rtpparse_class;
 
-typedef struct _rtpinfo
+typedef struct _rtpparse
 {
 	t_object x_obj;
   t_rtpheader x_rtpheader;
-} t_rtpinfo;
+} t_rtpparse;
 
-static void rtpinfo_bang(t_rtpinfo*x){
+static void rtpparse_bang(t_rtpparse*x){
   t_atom ap[4];
   t_rtpheader*rtp=&x->x_rtpheader;
   unsigned int version = rtp->version;
@@ -63,19 +63,19 @@ static void rtpinfo_bang(t_rtpinfo*x){
   }
 }
 
-static void rtpinfo_list(t_rtpinfo*x, t_symbol*s, int argc, t_atom*argv){
+static void rtpparse_list(t_rtpparse*x, t_symbol*s, int argc, t_atom*argv){
   int result=atoms2header(argc, argv, &x->x_rtpheader);
   if(result>0) {
-    rtpinfo_bang(x);
+    rtpparse_bang(x);
   } else {
     pd_error(x, "list too short to form a valid RTP-packet (expected %d, got %d)",-result, argc);
   }
     }
 
-/* create rtpinfo with args <channels> <skip> */
-static void *rtpinfo_new(void)
+/* create rtpparse with args <channels> <skip> */
+static void *rtpparse_new(void)
 {
-	t_rtpinfo *x = (t_rtpinfo *)pd_new(rtpinfo_class);
+	t_rtpparse *x = (t_rtpparse *)pd_new(rtpparse_class);
 
 	outlet_new(&x->x_obj, 0);
 	return (x);
@@ -83,15 +83,15 @@ static void *rtpinfo_new(void)
 
 
 
-static void rtpinfo_free(t_rtpinfo *x) {
+static void rtpparse_free(t_rtpparse *x) {
   free(x->x_rtpheader.csrc);
   x->x_rtpheader.csrc=NULL;
 }
 
-void rtpinfo_setup(void)
+void rtpparse_setup(void)
 {
-	rtpinfo_class = class_new(gensym("rtpinfo"), (t_newmethod)rtpinfo_new, (t_method)rtpinfo_free,
-		sizeof(t_rtpinfo), 0,0);
+	rtpparse_class = class_new(gensym("rtpparse"), (t_newmethod)rtpparse_new, (t_method)rtpparse_free,
+		sizeof(t_rtpparse), 0,0);
 
-	class_addlist(rtpinfo_class, (t_method)rtpinfo_list);
+	class_addlist(rtpparse_class, (t_method)rtpparse_list);
 }
