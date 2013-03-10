@@ -47,14 +47,16 @@ static void L16decode_list(t_L16decode*x, t_symbol*s, int argc, t_atom*argv) {
 
   c=0;
   for(f=0; f<frames; f++) {
-    unsigned char hibyte=atom_getint(argv++);
-    unsigned char lobyte=atom_getint(argv++);
-    signed short s = (hibyte<<8) + lobyte;
-    t_sample fsample=s/32767.;
-    u_int32 index=c*(frames-1)+f+1;
-    //    post("sample[%d/%d]= %d [%d, %d] --> [%d] %f", f, c, s, hibyte, lobyte, index, fsample);
-    x->x_atombuffer[index].a_w.w_float = fsample;
-    c=(c+1)%channels;
+    for(c=0; c<channels; c++) {
+      unsigned char hibyte=atom_getint(argv++);
+      unsigned char lobyte=atom_getint(argv++);
+      signed short s = (hibyte<<8) + lobyte;
+      t_sample fsample=s/32767.;
+      u_int32 index=c*(frames-1)+f+1;
+      //      post("index=%d=%d*(%d-1)+%d+1",index, c, frames, f);
+      //      post("sample[%d/%d]= %d [%d, %d]\t --> [%d] %f", f, c, s, hibyte, lobyte, index, fsample);
+      x->x_atombuffer[index].a_w.w_float = fsample;
+    }
   }
 
   /* output sample lists */
