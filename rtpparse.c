@@ -23,6 +23,8 @@ static t_class *rtpparse_class;
 typedef struct _rtpparse
 {
 	t_object x_obj;
+  t_outlet*x_dataout;
+  t_outlet*x_infoout;
   t_rtpheader x_rtpheader;
 } t_rtpparse;
 
@@ -31,8 +33,9 @@ static void rtpparse_bang(t_rtpparse*x){
   t_rtpheader*rtp=&x->x_rtpheader;
   unsigned int version = rtp->version;
   unsigned int cc = rtp->cc, c;
+  t_outlet*out=x->x_infoout;
   SETFLOAT(ap+0, version);
-  outlet_anything(x->x_obj.ob_outlet, gensym("version"), 1, ap);
+  outlet_anything(out, gensym("version"), 1, ap);
   if(version!=2) {
     static int printerror=1;
     if(printerror)
@@ -41,25 +44,25 @@ static void rtpparse_bang(t_rtpparse*x){
   }
 
   SETFLOAT(ap+0, rtp->p);
-  outlet_anything(x->x_obj.ob_outlet, gensym("padding"), 1, ap);
+  outlet_anything(out, gensym("padding"), 1, ap);
   SETFLOAT(ap+0, rtp->x);
-  outlet_anything(x->x_obj.ob_outlet, gensym("extension"), 1, ap);
+  outlet_anything(out, gensym("extension"), 1, ap);
   SETFLOAT(ap+0, rtp->cc);
-  outlet_anything(x->x_obj.ob_outlet, gensym("cc"), 1, ap);
+  outlet_anything(out, gensym("cc"), 1, ap);
   SETFLOAT(ap+0, rtp->m);
-  outlet_anything(x->x_obj.ob_outlet, gensym("marker"), 1, ap);
+  outlet_anything(out, gensym("marker"), 1, ap);
   SETFLOAT(ap+0, rtp->pt);
-  outlet_anything(x->x_obj.ob_outlet, gensym("payload_type"), 1, ap);
+  outlet_anything(out, gensym("payload_type"), 1, ap);
   SETFLOAT(ap+0, rtp->seq);
-  outlet_anything(x->x_obj.ob_outlet, gensym("sequence_number"), 1, ap);
+  outlet_anything(out, gensym("sequence_number"), 1, ap);
   SETUINT32(ap, rtp->ts);
-  outlet_anything(x->x_obj.ob_outlet, gensym("timestamp"), 2, ap);
+  outlet_anything(out, gensym("timestamp"), 2, ap);
   SETUINT32(ap, rtp->ssrc);
-  outlet_anything(x->x_obj.ob_outlet, gensym("SSRC"), 2, ap);
+  outlet_anything(out, gensym("SSRC"), 2, ap);
   for(c=0; c<cc; c++) {
     SETFLOAT(ap+0, c);
     SETUINT32(ap+1, rtp->csrc[c]);
-    outlet_anything(x->x_obj.ob_outlet, gensym("CSRC"), 3, ap);
+    outlet_anything(out, gensym("CSRC"), 3, ap);
   }
 }
 
@@ -67,6 +70,7 @@ static void rtpparse_list(t_rtpparse*x, t_symbol*s, int argc, t_atom*argv){
   int result=atoms2header(argc, argv, &x->x_rtpheader);
   if(result>0) {
     rtpparse_bang(x);
+    outlet_list(x->x_dataout, 0, argc-result, argv+result);
   } else {
     pd_error(x, "list too short to form a valid RTP-packet (expected %d, got %d)",-result, argc);
   }
@@ -77,7 +81,8 @@ static void *rtpparse_new(void)
 {
 	t_rtpparse *x = (t_rtpparse *)pd_new(rtpparse_class);
 
-	outlet_new(&x->x_obj, 0);
+	x->x_dataout=outlet_new(&x->x_obj, &s_list);
+	x->x_infoout=outlet_new(&x->x_obj, 0);
 	return (x);
 }
 
@@ -86,6 +91,9 @@ static void *rtpparse_new(void)
 static void rtpparse_free(t_rtpparse *x) {
   free(x->x_rtpheader.csrc);
   x->x_rtpheader.csrc=NULL;
+
+  outlet_free(x->x_dataout);
+  outlet_free(x->x_infoout);
 }
 
 void rtpparse_setup(void)
