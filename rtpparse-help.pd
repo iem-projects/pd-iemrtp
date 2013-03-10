@@ -1,5 +1,5 @@
 #N canvas 762 255 450 415 10;
-#X obj 32 274 rtpinfo;
+#X obj 32 274 rtpparse;
 #X obj 123 149 L16pay~ 1;
 #X obj 111 95 osc~ 10;
 #X msg 255 55 \; pd dsp 1;
