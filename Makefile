@@ -254,7 +254,7 @@ SHARED_TCL_LIB = $(wildcard lib$(LIBRARY_NAME).tcl)
 
 all: $(SOURCES:.c=.$(EXTENSION)) $(SHARED_LIB)
 
-%.o: %.c
+%.o: %.c $(SHARED_HEADER)
 	$(CC) $(ALL_CFLAGS) -o "$*.o" -c "$*.c"
 
 %.$(EXTENSION): %.o $(SHARED_LIB)
