@@ -22,10 +22,13 @@ MANUAL =
 # list them here.  This can be anything from header files, test patches,
 # documentation, etc.  README.txt and LICENSE.txt are required and therefore
 # automatically included
-EXTRA_DIST = rtp.h
+EXTRA_DIST =
 
 # unit tests and related files here, in the 'unittests' subfolder
 UNITTESTS = 
+
+# header files
+SHARED_HEADER = rtp.h
 
 
 
