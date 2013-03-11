@@ -45,7 +45,9 @@ typedef struct {
   unsigned int version:2;   /* protocol version */
   unsigned int p:1;         /* padding flag */
   unsigned int count:5;     /* varies by packet type */
+
   unsigned int pt:8;        /* RTCP packet type */
+
   u_int16 length;           /* pkt len in words, w/o this word */
 } rtcp_common_t;
 /*
@@ -67,9 +69,36 @@ typedef struct {
 typedef struct {
   u_int8 type;              /* type of item (rtcp_sdes_type_t) */
   u_int8 length;            /* length of item (in octets) */
-  char data[1];             /* text, not null-terminated */
+  char*data;                /* text, (not) null-terminated */
 } rtcp_sdes_item_t;
 
+typedef struct rtcp_common_sr_ {
+  u_int32 ssrc;     /* sender generating this report */
+  u_int32 ntp_sec;  /* NTP timestamp */
+  u_int32 ntp_frac;
+  u_int32 rtp_ts;   /* RTP timestamp */
+  u_int32 psent;    /* packets sent */
+  u_int32 osent;    /* octets sent */
+
+  rtcp_rr_t*rr;        /* variable-length list */
+  u_int32   rr_count;  /* length of list */
+} rtcp_common_sr_t;
+typedef struct rtcp_common_rr_ {
+  u_int32 ssrc;        /* receiver generating this report */
+  rtcp_rr_t*rr;        /* variable-length list */
+  u_int32   rr_count;  /* length of list */
+} rtcp_common_rr_t;
+typedef struct  rtcp_sdes {
+  u_int32 src;      /* first SSRC/CSRC */
+  rtcp_sdes_item_t*item; /* list of SDES items */
+  u_int32   item_count;  /* length of list */
+} rtcp_sdes_t;
+typedef struct  rtcp_common_bye_ {
+  u_int32*src;       /* list of sources */
+  u_int32 src_count; /* length of list */
+
+  /* can't express trailing text for reason */
+} rtcp_common_bye_t;
 /*
  * One RTCP packet
  */
@@ -77,38 +106,19 @@ typedef struct {
   rtcp_common_t common;     /* common header */
   union {
     /* sender report (SR) */
-    struct {
-      u_int32 ssrc;     /* sender generating this report */
-      u_int32 ntp_sec;  /* NTP timestamp */
-      u_int32 ntp_frac;
-      u_int32 rtp_ts;   /* RTP timestamp */
-      u_int32 psent;    /* packets sent */
-      u_int32 osent;    /* octets sent */
-      rtcp_rr_t rr[1];  /* variable-length list */
-    } sr;
-    
+    rtcp_common_sr_t sr;
+
     /* reception report (RR) */
-    struct {
-      u_int32 ssrc;     /* receiver generating this report */
-      rtcp_rr_t rr[1];  /* variable-length list */
-    } rr;
-    
+    rtcp_common_rr_t rr;
+
     /* source description (SDES) */
-    struct rtcp_sdes {
-      u_int32 src;      /* first SSRC/CSRC */
-      rtcp_sdes_item_t item[1]; /* list of SDES items */
-    } sdes;
-    
+    rtcp_sdes_t sdes;
+
     /* BYE */
-    struct {
-      u_int32 src[1];   /* list of sources */
-      
-      /* can't express trailing text for reason */
-    } bye;
+    rtcp_common_bye_t bye;
   } r;
 } rtcp_t;
 
-typedef struct rtcp_sdes rtcp_sdes_t;
 
 /*
  * Per-source state information
