@@ -72,7 +72,7 @@ static void rtpparse_list(t_rtpparse*x, t_symbol*s, int argc, t_atom*argv){
   int result=atoms2header(argc, argv, &x->x_rtpheader);
   if(result>0) {
     rtpparse_bang(x);
-    outlet_list(x->x_dataout, 0, argc-result, argv+result);
+    outlet_list(x->x_dataout, s, argc-result, argv+result);
   } else {
     outlet_list(x->x_rejectout, s, argc, argv);
   }
