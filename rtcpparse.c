@@ -23,11 +23,44 @@ static t_class *rtcpparse_class;
 typedef struct _rtcpparse
 {
 	t_object x_obj;
-  t_outlet*x_dataout;
+  t_outlet*x_countout;
   t_outlet*x_infoout;
   t_outlet*x_rejectout;
   rtcp_t x_rtcpheader;
 } t_rtcpparse;
+
+static void rtcp_freemembers(rtcp_t*x) {
+  switch(x->common.pt) {
+  case(RTCP_SR  ):
+    if(x->r.sr.rr)freebytes(x->r.sr.rr, x->r.sr.rr_count*sizeof(rtcp_rr_t));
+    x->r.sr.rr=NULL;  x->r.sr.rr_count=0;
+    break;
+  case(RTCP_RR  ):
+    if(x->r.rr.rr)freebytes(x->r.rr.rr, x->r.rr.rr_count*sizeof(rtcp_rr_t));
+    x->r.rr.rr=NULL;  x->r.rr.rr_count=0;
+    break;
+  case(RTCP_SDES):
+    if(x->r.sdes.item) {
+      u_int32 i;
+      for(i=0; i<x->r.sdes.item_count; i++) {
+        rtcp_sdes_item_t*item=x->r.sdes.item+i;
+        free(item->data);
+        item->data=NULL; item->length=0; item->type=0;
+      }
+      freebytes(x->r.sdes.item, x->r.sdes.item_count*sizeof(rtcp_sdes_item_t));
+    }
+    x->r.sdes.item=NULL; x->r.sdes.item_count=0;
+    break;
+  case(RTCP_BYE ):
+    if(x->r.bye.src)freebytes(x->r.bye.src, x->r.bye.src_count*sizeof(u_int32));
+    x->r.bye.src=NULL;  x->r.bye.src_count=0;
+    break;
+  case(RTCP_APP ):
+    if(x->r.sr.rr)freebytes(x->r.sr.rr, x->r.sr.rr_count*sizeof(rtcp_rr_t));
+    x->r.sr.rr=NULL;  x->r.sr.rr_count=0;
+    break;
+  }
+}
 
 static void atoms2rtcp_rrlist(u_int32 frames, t_atom*argv, rtcp_rr_t*x) {
   u_int32 f;
@@ -61,11 +94,8 @@ static u_int32 atoms2rtcp_sr(rtcp_common_sr_t*x, u_int32 argc, t_atom*argv) {
   x->osent    = atombytes_getU32(argv+20);
 
   /* now comes a variable length list of rtcp_rr_t's, each 24 bytes */
-  if(x->rr) {
-    freebytes(x->rr, x->rr_count * sizeof(rtcp_rr_t));
-    x->rr_count=frames-1;
-    x->rr = getbytes(x->rr_count * sizeof(rtcp_rr_t));
-  }
+  x->rr_count=frames-1;
+  x->rr = getbytes(x->rr_count * sizeof(rtcp_rr_t));
 
   atoms2rtcp_rrlist(x->rr_count, argv + 24, x->rr);
 
@@ -73,8 +103,7 @@ static u_int32 atoms2rtcp_sr(rtcp_common_sr_t*x, u_int32 argc, t_atom*argv) {
 }
 static u_int32 atoms2rtcp_rr(rtcp_common_rr_t*x, u_int32 argc, t_atom*argv) {
   const u_int32 framesize=24;
-  u_int32 frames;
-  frames=(argc-4)/framesize;
+  u_int32 frames=(argc-4)/framesize;
   if(frames*framesize+4 != argc) {
     return -(frames*framesize+4);
   }
@@ -82,17 +111,16 @@ static u_int32 atoms2rtcp_rr(rtcp_common_rr_t*x, u_int32 argc, t_atom*argv) {
   x->ssrc     = atombytes_getU32(argv+ 0);
 
   /* now comes a variable length list of rtcp_rr_t's, each framesize bytes */
-  if(x->rr) {
-    freebytes(x->rr, x->rr_count * sizeof(rtcp_rr_t));
-    x->rr_count=frames;
-    x->rr = getbytes(x->rr_count * sizeof(rtcp_rr_t));
-  }
+  x->rr_count=frames;
+  x->rr = getbytes(x->rr_count * sizeof(rtcp_rr_t));
+
   atoms2rtcp_rrlist(x->rr_count, argv + 4, x->rr);
 
   return argc;
 }
 
 static u_int32 atoms2rtcp_sdes(rtcp_sdes_t*x, u_int32 argc, t_atom*argv) {
+#warning FIXME: SDES parser broken for multiple chunks
   t_atom*ap;
   u_int32 f, frames = 0;
   u_int8 len;
@@ -110,17 +138,9 @@ static u_int32 atoms2rtcp_sdes(rtcp_sdes_t*x, u_int32 argc, t_atom*argv) {
     len=atom_getint(ap++); datalengths++; //length of following string
     ap+=len; datalengths+=len;
   }
-  post("got %d SDES-items", frames);
 
-  if(x->item) {
-    for(f=0; f<x->item_count; f++) {
-      free(x->item[f].data);
-      x->item[f].data=NULL;
-    }
-    freebytes(x->item, x->item_count * sizeof(rtcp_sdes_item_t));
-    x->item_count=frames;
-    x->item = getbytes(x->item_count * sizeof(rtcp_sdes_item_t));
-  }
+  x->item_count=frames;
+  x->item = getbytes(x->item_count * sizeof(rtcp_sdes_item_t));
 
   ap=argv+4;
   for(f=0; f<frames; f++) {
@@ -145,11 +165,8 @@ static u_int32 atoms2rtcp_bye(rtcp_common_bye_t*x, u_int32 argc, t_atom*argv) {
   if(frames*4 != argc) {
     return -(frames*4);
   }
-  if(x->src) {
-    freebytes(x->src, x->src_count * sizeof(u_int32));
-    x->src_count=frames;
-    x->src = getbytes(x->src_count * sizeof(u_int32));
-  }
+  x->src_count=frames;
+  x->src = getbytes(x->src_count * sizeof(u_int32));
 
   for(f=0; f<frames; f++) {
     x->src[f] = atombytes_getU32(argv+4*f);
@@ -160,6 +177,8 @@ static u_int32 atoms2rtcp(int argc, t_atom*argv, rtcp_t*x) {
   u_int8 b;
   int retval=4;
   u_int16 length;
+  rtcp_freemembers(x);
+
   if(!argc) {
     return -retval;
   }
@@ -168,35 +187,35 @@ static u_int32 atoms2rtcp(int argc, t_atom*argv, rtcp_t*x) {
   x->common.p      =(b >> 5) & 0x01;
   x->common.count  =(b >> 0) & 0x1F;
 
-  b=atom_getint(argv++);
+  b=atom_getint(argv+1);
   x->common.pt     =b;
   
   length =atombytes_getU16(argv+2);
   x->common.length =length;
 
-  if(length > argc-4) {
-    return (-(length+4));
+  if((length+1)*4 > argc) {
+    return (-(length+1)*4);
   }
 
   switch(x->common.pt) {
   case(RTCP_SR):
-    atoms2rtcp_sr(&(x->r.sr), length, argv+4);
+    retval+=atoms2rtcp_sr(&(x->r.sr), length*4, argv+4);
     break;
   case(RTCP_RR):
-    atoms2rtcp_rr(&(x->r.rr), length, argv+4);
+    retval+=atoms2rtcp_rr(&(x->r.rr), length*4, argv+4);
     break;
   case(RTCP_SDES):
-    atoms2rtcp_sdes(&(x->r.sdes), length, argv+4);
+    retval+=atoms2rtcp_sdes(&(x->r.sdes), length*4, argv+4);
     break;
   case(RTCP_BYE):
-    atoms2rtcp_bye(&(x->r.bye), length, argv+4);
+    retval+=atoms2rtcp_bye(&(x->r.bye), length*4, argv+4);
     break;
   case(RTCP_APP):
-    //atoms2rtcp_app(&(x->r.app), length, argv+4);
+    //atoms2rtcp_app(&(x->r.app), length*4, argv+4);
     break;
   }
 
-  return argc;
+  return retval;
 }
 
 static void rtcpparse_rrlist(t_outlet*out, t_symbol*s, u_int32 argc, rtcp_rr_t*argv){
@@ -236,38 +255,58 @@ static void rtcpparse_rrlist(t_outlet*out, t_symbol*s, u_int32 argc, rtcp_rr_t*a
   }
 }
 static void rtcpparse_sdesitems(t_outlet*out, u_int32 argc, rtcp_sdes_item_t*argv){
-  t_atom ap[1];
+  t_atom ap[2];
+  t_symbol*s_sdes=gensym("SDES");
   u_int32 i;
   for(i=0; i<argc; i++) {
     rtcp_sdes_item_t*sdes=argv+i;
+    int count=1;
     switch(sdes->type) {
-    case(RTCP_SDES_END  ): 
-      outlet_anything(out, gensym("SDES_END"), 0, ap);
+    case(RTCP_SDES_END  ):
+      if(sdes->data && sdes->data[0]) { count++; SETSYMBOL(ap+count, gensym(sdes->data)); }
+      SETSYMBOL(ap, gensym("END"));
+      outlet_anything(out, s_sdes, count, ap);
       return;
       break;
     case(RTCP_SDES_CNAME): 
-      outlet_anything(out, gensym("SDES_CNAME"), 0, ap);
+      if(sdes->data && sdes->data[0]) { count++; SETSYMBOL(ap+count, gensym(sdes->data)); }
+      SETSYMBOL(ap, gensym("CNAME"));
+      outlet_anything(out, s_sdes, count, ap);
       break;
     case(RTCP_SDES_NAME ): 
-      outlet_anything(out, gensym("SDES_NAME"), 0, ap);
+      if(sdes->data && sdes->data[0]) { count++; SETSYMBOL(ap+count, gensym(sdes->data)); }
+      SETSYMBOL(ap, gensym("NAME"));
+      outlet_anything(out, s_sdes, count, ap);
       break;
     case(RTCP_SDES_EMAIL): 
-      outlet_anything(out, gensym("SDES_EMAIL"), 0, ap);
+      if(sdes->data && sdes->data[0]) { count++; SETSYMBOL(ap+count, gensym(sdes->data)); }
+      SETSYMBOL(ap, gensym("EMAIL"));
+      outlet_anything(out, s_sdes, count, ap);
       break;
     case(RTCP_SDES_PHONE): 
-      outlet_anything(out, gensym("SDES_PHONE"), 0, ap);
+      if(sdes->data && sdes->data[0]) { count++; SETSYMBOL(ap+count, gensym(sdes->data)); }
+      SETSYMBOL(ap, gensym("PHONE"));
+      outlet_anything(out, s_sdes, count, ap);
       break;
     case(RTCP_SDES_LOC  ): 
-      outlet_anything(out, gensym("SDES_LOC"), 0, ap);
+      if(sdes->data && sdes->data[0]) { count++; SETSYMBOL(ap+count, gensym(sdes->data)); }
+      SETSYMBOL(ap, gensym("LOC"));
+      outlet_anything(out, s_sdes, count, ap);
       break;
     case(RTCP_SDES_TOOL ): 
-      outlet_anything(out, gensym("SDES_TOOL"), 0, ap);
+      if(sdes->data && sdes->data[0]) { count++; SETSYMBOL(ap+count, gensym(sdes->data)); }
+      SETSYMBOL(ap, gensym("TOOL"));
+      outlet_anything(out, s_sdes, count, ap);
       break;
     case(RTCP_SDES_NOTE ): 
-      outlet_anything(out, gensym("SDES_NOTE"), 0, ap);
+      if(sdes->data && sdes->data[0]) { count++; SETSYMBOL(ap+count, gensym(sdes->data)); }
+      SETSYMBOL(ap, gensym("NOTE"));
+      outlet_anything(out, s_sdes, count, ap);
       break;
     case(RTCP_SDES_PRIV ): 
-      outlet_anything(out, gensym("SDES_PRIV"), 0, ap);
+      if(sdes->data && sdes->data[0]) { count++; SETSYMBOL(ap+count, gensym(sdes->data)); }
+      SETSYMBOL(ap, gensym("PROV"));
+      outlet_anything(out, s_sdes, count, ap);
       break;
     }
   }
@@ -345,10 +384,19 @@ static void rtcpparse_rtcp(t_rtcpparse*x){
 
   SETFLOAT(ap+0, rtcp->p);
   outlet_anything(out, gensym("padding"), 1, ap);
+  switch(type) {
+  case RTCP_SR  : SETSYMBOL(ap+0, gensym("SR")); break;
+  case RTCP_RR  : SETSYMBOL(ap+0, gensym("RR")); break;
+  case RTCP_SDES: SETSYMBOL(ap+0, gensym("SDES")); break;
+  case RTCP_BYE : SETSYMBOL(ap+0, gensym("BYE")); break;
+  case RTCP_APP : SETSYMBOL(ap+0, gensym("APP")); break;
+  default:
+    SETFLOAT(ap+0, type);
+  }
+  outlet_anything(out, gensym("type"), 1, ap);
+
   SETFLOAT(ap+0, rtcp->count);
   outlet_anything(out, gensym("count"), 1, ap);
-  SETFLOAT(ap+0, type);
-  outlet_anything(out, gensym("type"), 1, ap);
 
   switch(type) {
   case(RTCP_SR):
@@ -370,22 +418,30 @@ static void rtcpparse_rtcp(t_rtcpparse*x){
 }
 
 static void rtcpparse_list(t_rtcpparse*x, t_symbol*s, int argc, t_atom*argv){
-  int result=atoms2rtcp(argc, argv, &x->x_rtcpheader);
-  if(result>0) {
+  int pkt=0;
+  int result=0;
+  int offset=0;
+  result=atoms2rtcp(argc, argv, &x->x_rtcpheader);
+  while(result>0) {
+    outlet_float(x->x_countout, pkt);
     rtcpparse_rtcp(x);
-    
-  } else {
-    outlet_list(x->x_rejectout, s, argc, argv);
+    offset+=result;
+    if(argc-offset<=0)
+      return;
+    result=atoms2rtcp(argc-offset, argv+offset, &x->x_rtcpheader);
+    pkt++;
   }
-    }
+  if(result<=0)
+    outlet_list(x->x_rejectout, s, argc+offset, argv-offset);
+}
 
 /* create rtcpparse with args <channels> <skip> */
 static void *rtcpparse_new(void)
 {
 	t_rtcpparse *x = (t_rtcpparse *)pd_new(rtcpparse_class);
 
-	x->x_dataout=outlet_new(&x->x_obj, &s_list);
-	x->x_infoout=outlet_new(&x->x_obj, 0);
+	x->x_infoout=outlet_new(&x->x_obj, &s_float);
+	x->x_countout=outlet_new(&x->x_obj, &s_list);
 	x->x_rejectout=outlet_new(&x->x_obj, &s_list);
 	return (x);
 }
@@ -393,8 +449,9 @@ static void *rtcpparse_new(void)
 
 
 static void rtcpparse_free(t_rtcpparse *x) {
-  outlet_free(x->x_dataout);
+  rtcp_freemembers(&x->x_rtcpheader);
   outlet_free(x->x_infoout);
+  outlet_free(x->x_countout);
   outlet_free(x->x_rejectout);
 }
 
