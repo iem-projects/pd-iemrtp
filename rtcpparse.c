@@ -263,48 +263,48 @@ static void rtcpparse_sdesitems(t_outlet*out, u_int32 argc, rtcp_sdes_item_t*arg
     int count=1;
     switch(sdes->type) {
     case(RTCP_SDES_END  ):
-      if(sdes->data && sdes->data[0]) { count++; SETSYMBOL(ap+count, gensym(sdes->data)); }
+      if(sdes->data && sdes->data[0]) {SETSYMBOL(ap+count, gensym(sdes->data)); count++; }
       SETSYMBOL(ap, gensym("END"));
       outlet_anything(out, s_sdes, count, ap);
       return;
       break;
     case(RTCP_SDES_CNAME): 
-      if(sdes->data && sdes->data[0]) { count++; SETSYMBOL(ap+count, gensym(sdes->data)); }
+      if(sdes->data && sdes->data[0]) {SETSYMBOL(ap+count, gensym(sdes->data)); count++; }
       SETSYMBOL(ap, gensym("CNAME"));
       outlet_anything(out, s_sdes, count, ap);
       break;
     case(RTCP_SDES_NAME ): 
-      if(sdes->data && sdes->data[0]) { count++; SETSYMBOL(ap+count, gensym(sdes->data)); }
+      if(sdes->data && sdes->data[0]) {SETSYMBOL(ap+count, gensym(sdes->data)); count++; }
       SETSYMBOL(ap, gensym("NAME"));
       outlet_anything(out, s_sdes, count, ap);
       break;
     case(RTCP_SDES_EMAIL): 
-      if(sdes->data && sdes->data[0]) { count++; SETSYMBOL(ap+count, gensym(sdes->data)); }
+      if(sdes->data && sdes->data[0]) {SETSYMBOL(ap+count, gensym(sdes->data)); count++; }
       SETSYMBOL(ap, gensym("EMAIL"));
       outlet_anything(out, s_sdes, count, ap);
       break;
     case(RTCP_SDES_PHONE): 
-      if(sdes->data && sdes->data[0]) { count++; SETSYMBOL(ap+count, gensym(sdes->data)); }
+      if(sdes->data && sdes->data[0]) {SETSYMBOL(ap+count, gensym(sdes->data)); count++; }
       SETSYMBOL(ap, gensym("PHONE"));
       outlet_anything(out, s_sdes, count, ap);
       break;
     case(RTCP_SDES_LOC  ): 
-      if(sdes->data && sdes->data[0]) { count++; SETSYMBOL(ap+count, gensym(sdes->data)); }
+      if(sdes->data && sdes->data[0]) {SETSYMBOL(ap+count, gensym(sdes->data)); count++; }
       SETSYMBOL(ap, gensym("LOC"));
       outlet_anything(out, s_sdes, count, ap);
       break;
     case(RTCP_SDES_TOOL ): 
-      if(sdes->data && sdes->data[0]) { count++; SETSYMBOL(ap+count, gensym(sdes->data)); }
+      if(sdes->data && sdes->data[0]) {SETSYMBOL(ap+count, gensym(sdes->data)); count++; }
       SETSYMBOL(ap, gensym("TOOL"));
       outlet_anything(out, s_sdes, count, ap);
       break;
     case(RTCP_SDES_NOTE ): 
-      if(sdes->data && sdes->data[0]) { count++; SETSYMBOL(ap+count, gensym(sdes->data)); }
+      if(sdes->data && sdes->data[0]) {SETSYMBOL(ap+count, gensym(sdes->data)); count++; }
       SETSYMBOL(ap, gensym("NOTE"));
       outlet_anything(out, s_sdes, count, ap);
       break;
     case(RTCP_SDES_PRIV ): 
-      if(sdes->data && sdes->data[0]) { count++; SETSYMBOL(ap+count, gensym(sdes->data)); }
+      if(sdes->data && sdes->data[0]) {SETSYMBOL(ap+count, gensym(sdes->data)); count++; }
       SETSYMBOL(ap, gensym("PROV"));
       outlet_anything(out, s_sdes, count, ap);
       break;
