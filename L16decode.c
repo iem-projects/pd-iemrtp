@@ -63,7 +63,7 @@ static void L16decode_list(t_L16decode*x, t_symbol*s, int argc, t_atom*argv) {
   for(i=0; i<channels; i++) {
     t_atom*ap=x->x_atombuffer+frames*i;
     SETFLOAT(ap, i);
-    outlet_list(x->x_obj.ob_outlet, &s_list, frames, ap);
+    outlet_list(x->x_obj.ob_outlet, s, frames, ap);
   }
 }
 
