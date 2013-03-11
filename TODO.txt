@@ -1,0 +1,17 @@
+TODO for the RTP-bindings
+=========================
+
+
+RTCP support
+------------
+currently we have only implemented the streaming (RTP) part of the protocol.
+but we really should also do the RTCP part
+
+depayloader
+-----------
+provide the decoded signals in a user-friendly way, e.g. using send~
+
+L16 payloading
+--------------
+there is a lot of noise in the L16 payload
+(check whether it's the encoder or the decoder)
