@@ -82,7 +82,7 @@ static void L16pay_preparePacket(t_L16pay*x) {
 
 static t_int *L16pay_perform(t_int *w)
 {
-  const t_sample scale = 32767.;
+  const t_sample scale = 0x7FFF / 1.f;
 	t_L16pay* x = (t_L16pay*)(w[1]);
   u_int32 n, vecsize = x->x_vecsize;
   u_int32 c, channels=x->x_channels;
