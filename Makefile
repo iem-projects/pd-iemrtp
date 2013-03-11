@@ -28,7 +28,7 @@ EXTRA_DIST =
 UNITTESTS = 
 
 # header files
-SHARED_HEADER = rtp.h
+SHARED_HEADER = iemrtp.h rtp.h rtcp.h
 
 
 
