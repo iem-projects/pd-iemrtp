@@ -87,18 +87,16 @@ static t_int *L16pay_perform(t_int *w)
   u_int32 n, vecsize = x->x_vecsize;
   u_int32 c, channels=x->x_channels;
   t_sample**ins=x->x_in;
-  short*buffer=(short*)x->x_buffer;
+  u_int8*buffer=x->x_buffer;
 
   if(!x->x_running)return(w+2);
 
   for(n=0; n<vecsize; n++) {
     for (c=0;c<channels;c++) {
-      short s = ins[c][n] * scale;
-      /* convert to big-endian */
-#ifdef LITTLE_ENDIAN
-      s=(s << 8) | (s >> 8);
-#endif
-      *buffer++=s;
+      // LATER: if(in>1.f) this returns "-1"
+      signed short s = ins[c][n] * scale;
+      *buffer++=(s>>8) & 0xFF;
+      *buffer++=(s>>0) & 0xFF;
     }
   }
   clock_delay(x->x_clock, 0);
