@@ -25,6 +25,8 @@ typedef struct _rtpparse
 	t_object x_obj;
   t_outlet*x_dataout;
   t_outlet*x_infoout;
+  t_outlet*x_rejectout;
+
   t_rtpheader x_rtpheader;
 } t_rtpparse;
 
@@ -72,7 +74,7 @@ static void rtpparse_list(t_rtpparse*x, t_symbol*s, int argc, t_atom*argv){
     rtpparse_bang(x);
     outlet_list(x->x_dataout, 0, argc-result, argv+result);
   } else {
-    pd_error(x, "list too short to form a valid RTP-packet (expected %d, got %d)",-result, argc);
+    outlet_list(x->x_rejectout, s, argc, argv);
   }
     }
 
@@ -83,6 +85,7 @@ static void *rtpparse_new(void)
 
 	x->x_dataout=outlet_new(&x->x_obj, &s_list);
 	x->x_infoout=outlet_new(&x->x_obj, 0);
+	x->x_rejectout=outlet_new(&x->x_obj, 0);
 	return (x);
 }
 
@@ -94,6 +97,7 @@ static void rtpparse_free(t_rtpparse *x) {
 
   outlet_free(x->x_dataout);
   outlet_free(x->x_infoout);
+  outlet_free(x->x_rejectout);
 }
 
 void rtpparse_setup(void)
