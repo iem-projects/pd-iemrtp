@@ -33,13 +33,13 @@ typedef struct _L16decode
 static void L16decode_list(t_L16decode*x, t_symbol*s, int argc, t_atom*argv) {
   u_int32 c, channels=x->x_channels;
   u_int32 framesize=(RTP_BYTESPERSAMPLE*channels);
-  u_int32 f, frames=(argc / framesize) + 1 ; // 1 extra frame for channel ID
+  u_int32 f, frames=(argc / framesize) ; // 1 extra frame for channel ID
   u_int32 i;
 
   /* setup output buffer */
-  if(x->x_atombuffersize<frames*framesize) {
+  if(x->x_atombuffersize<frames*framesize+1) {
     freebytes(x->x_atombuffer, x->x_atombuffersize*sizeof(t_atom));
-    x->x_atombuffersize = (frames*framesize / 64 + 1) * 64;
+    x->x_atombuffersize = ((frames+1)*framesize / 64 + 1) * 64;
     x->x_atombuffer=getbytes(x->x_atombuffersize*sizeof(t_atom));
     for(i=0; i<x->x_atombuffersize; i++)
       SETFLOAT(x->x_atombuffer+i, 0.);
@@ -52,7 +52,7 @@ static void L16decode_list(t_L16decode*x, t_symbol*s, int argc, t_atom*argv) {
       unsigned char lobyte=atom_getint(argv++);
       signed short s = (hibyte<<8) + lobyte;
       t_sample fsample=s/32767.;
-      u_int32 index=c*(frames-1)+f+1;
+      u_int32 index=c*frames+f+1;
       //      post("index=%d=%d*(%d-1)+%d+1",index, c, frames, f);
       //      post("sample[%d/%d]= %d [%d, %d]\t --> [%d] %f", f, c, s, hibyte, lobyte, index, fsample);
       x->x_atombuffer[index].a_w.w_float = fsample;
@@ -63,7 +63,7 @@ static void L16decode_list(t_L16decode*x, t_symbol*s, int argc, t_atom*argv) {
   for(i=0; i<channels; i++) {
     t_atom*ap=x->x_atombuffer+frames*i;
     SETFLOAT(ap, i);
-    outlet_list(x->x_obj.ob_outlet, s, frames, ap);
+    outlet_list(x->x_obj.ob_outlet, s, frames+1, ap);
   }
 }
 
