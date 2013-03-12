@@ -59,6 +59,12 @@ STATIC_INLINE u_int32 header2atoms(t_rtpheader*rtpheader, t_atom*ap0) {
   }
   return (12+cc*4);
 }
+
+STATIC_INLINE void rtpheader_freemembers(t_rtpheader*rtpheader) {
+ if(rtpheader->csrc)free(rtpheader->csrc);
+ rtpheader->csrc=NULL;
+ rtpheader->cc=0;
+}
 /**
  * @brief parse a byte-package (atom list) to an rtpheader.
  * @param argc total length of the list
@@ -83,7 +89,7 @@ STATIC_INLINE int atoms2header(int argc, t_atom*argv, t_rtpheader*rtpheader) {
   if(argc<retval) {
     return -retval;
   }
-  if(rtpheader->csrc)free(rtpheader->csrc);
+  rtpheader_freemembers(rtpheader);
   rtpheader->csrc=malloc(cc * sizeof(u_int32));
 
   rtpheader->version = (b >> 6) & 0x03;

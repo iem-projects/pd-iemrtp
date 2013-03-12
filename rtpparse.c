@@ -92,8 +92,7 @@ static void *rtpparse_new(void)
 
 
 static void rtpparse_free(t_rtpparse *x) {
-  free(x->x_rtpheader.csrc);
-  x->x_rtpheader.csrc=NULL;
+  rtpheader_freemembers(&x->x_rtpheader);
 
   outlet_free(x->x_dataout);
   outlet_free(x->x_infoout);
