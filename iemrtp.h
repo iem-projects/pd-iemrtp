@@ -34,6 +34,11 @@
 
 #include <stdlib.h>
 
+#if 1
+# define STATIC_INLINE static inline
+#else
+# define STATIC_INLINE
+#endif
 
 /* integer type handling */
 typedef unsigned char  u_int8;
@@ -54,7 +59,7 @@ typedef union {
  * @param i  the u_int32 value
  * @return number of atoms consumed (2)
  */
-static inline u_int32 SETUINT32(t_atom ap[2], u_int32 i) {
+STATIC_INLINE u_int32 SETUINT32(t_atom ap[2], u_int32 i) {
   SETFLOAT(ap+0, ((i>>16)&0xFFFF));
   SETFLOAT(ap+1, ((i>> 0)&0xFFFF));
   return 2;
@@ -64,7 +69,7 @@ static inline u_int32 SETUINT32(t_atom ap[2], u_int32 i) {
  * @param ap pointer to atom-array to read u_int16 from
  * @return the u_int16
  */
-static inline u_int16 atombytes_getU16(t_atom ap[2]) {
+STATIC_INLINE u_int16 atombytes_getU16(t_atom ap[2]) {
   u_int16 result=0;
   result<<= 8;result+=atom_getint(ap++);
   result<<= 8;result+=atom_getint(ap++);
@@ -75,7 +80,7 @@ static inline u_int16 atombytes_getU16(t_atom ap[2]) {
  * @param ap pointer to atom-array to read u_int32 from
  * @return the u_int32
  */
-static inline u_int32 atombytes_getU32(t_atom ap[4]) {
+STATIC_INLINE u_int32 atombytes_getU32(t_atom ap[4]) {
   u_int32 result=0;
   result<<= 8;result+=atom_getint(ap++);
   result<<= 8;result+=atom_getint(ap++);
@@ -90,7 +95,7 @@ static inline u_int32 atombytes_getU32(t_atom ap[4]) {
  * @param ap pointer to atom-array to write bytes to; the atoms have to be initialized to float-atoms beforehand (e.g. using SETFLOAT)
  * @return the number of atoms written (4)
  */
-static inline int atombytes_setU32(u_int32 i, t_atom ap[4]) {
+STATIC_INLINE int atombytes_setU32(u_int32 i, t_atom ap[4]) {
   ap++->a_w.w_float=(i>>24) & 0xFF;
   ap++->a_w.w_float=(i>>16) & 0xFF;
   ap++->a_w.w_float=(i>> 8) & 0xFF;
@@ -103,7 +108,7 @@ static inline int atombytes_setU32(u_int32 i, t_atom ap[4]) {
  * @param ap pointer to atom-array to write bytes to; the atoms have to be initialized to float-atoms beforehand (e.g. using SETFLOAT)
  * @return the number of atoms written (2)
  */
-static inline int atombytes_setU16(u_int16 i, t_atom ap[2]) {
+STATIC_INLINE int atombytes_setU16(u_int16 i, t_atom ap[2]) {
   ap++->a_w.w_float=(i>> 8) & 0xFF;
   ap++->a_w.w_float=(i>> 0) & 0xFF;
   return 2;

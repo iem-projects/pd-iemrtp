@@ -41,7 +41,7 @@ typedef struct _rtpheader {
 } t_rtpheader;
 
 
-static inline u_int32 header2atoms(t_rtpheader*rtpheader, t_atom*ap0) {
+STATIC_INLINE u_int32 header2atoms(t_rtpheader*rtpheader, t_atom*ap0) {
   t_atom*ap=ap0;
   u_int8 b;
   u_int32 c, cc=rtpheader->cc;
@@ -68,7 +68,7 @@ static inline u_int32 header2atoms(t_rtpheader*rtpheader, t_atom*ap0) {
  * @return the number of bytes consumed by the header
  *         on error, 0 or a negative number (minimum expected packet size ) is returned
  */
-static inline int atoms2header(int argc, t_atom*argv, t_rtpheader*rtpheader) {
+STATIC_INLINE int atoms2header(int argc, t_atom*argv, t_rtpheader*rtpheader) {
   u_int8  b;
   u_int8 cc;
   int retval=12;
