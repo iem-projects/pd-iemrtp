@@ -96,10 +96,10 @@ STATIC_INLINE u_int32 atombytes_getU32(t_atom ap[4]) {
  * @return the number of atoms written (4)
  */
 STATIC_INLINE int atombytes_setU32(u_int32 i, t_atom ap[4]) {
-  ap++->a_w.w_float=(i>>24) & 0xFF;
-  ap++->a_w.w_float=(i>>16) & 0xFF;
-  ap++->a_w.w_float=(i>> 8) & 0xFF;
-  ap++->a_w.w_float=(i>> 0) & 0xFF;
+  ap[0].a_w.w_float=(i>>24) & 0xFF;
+  ap[1].a_w.w_float=(i>>16) & 0xFF;
+  ap[2].a_w.w_float=(i>> 8) & 0xFF;
+  ap[3].a_w.w_float=(i>> 0) & 0xFF;
   return 4;
 }
 /**
