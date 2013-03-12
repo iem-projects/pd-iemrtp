@@ -52,8 +52,8 @@ STATIC_INLINE u_int32 header2atoms(t_rtpheader*rtpheader, t_atom*ap0) {
   ap++->a_w.w_float=b;
 
   ap+=atombytes_setU16(rtpheader->seq, ap);
-  ap+=atombytes_setU32(rtpheader->ts, ap);
-  ap+=atombytes_setU32(rtpheader->ssrc, ap);
+  ap+=atombytes_setU32(rtpheader->ts , ap);
+  ap+=atombytes_setU32(rtpheader->ssrc,ap);
   for(c=0; c < cc; c++) {
     ap+=atombytes_setU32(rtpheader->csrc[c], ap);
   }
