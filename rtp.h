@@ -93,6 +93,7 @@ STATIC_INLINE int rtpheader_ensureCSRC(t_rtpheader*rtpheader, int size) {
   rtpheader_freemembers(rtpheader);
   rtpheader->csrc = csrc;
   rtpheader->cc   = size;
+  return rtpheader->cc;
 }
 
 /**
