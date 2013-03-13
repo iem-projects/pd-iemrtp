@@ -78,6 +78,23 @@ STATIC_INLINE void rtpheader_freemembers(t_rtpheader*rtpheader) {
  rtpheader->csrc=NULL;
  rtpheader->cc=0;
 }
+STATIC_INLINE int rtpheader_ensureCSRC(t_rtpheader*rtpheader, int size) {
+  u_int32*csrc = NULL;
+  int i;
+  if(size>0x0F || size < 0)return 0; /* invalid size */
+  if(size<=rtpheader->cc)return size; /* already large enough */
+
+  csrc = calloc(size, sizeof(u_int32));
+  if(!csrc)return 0;
+
+  for(i=0; i<rtpheader->cc; i++) {
+    csrc[i]=rtpheader->csrc[i];
+  }
+  rtpheader_freemembers(rtpheader);
+  rtpheader->csrc = csrc;
+  rtpheader->cc   = size;
+}
+
 /**
  * @brief parse a byte-package (atom list) to an rtpheader.
  * @param argc total length of the list
