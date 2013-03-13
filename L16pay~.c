@@ -216,8 +216,12 @@ static void L16pay_x(t_L16pay *x, t_symbol*s, int argc, t_atom*argv) {
 static void L16pay_cc(t_L16pay *x, t_symbol*s, int argc, t_atom*argv) {
   if(argc) {
     int cc = atom_getint(argv);
+    if(!cc) {
+      rtpheader_freemembers(&x->x_rtpheader);
+      return;
+    }
     if(!rtpheader_ensureCSRC(&x->x_rtpheader, cc)) {
-      pd_error(x, "unable to resize CSRC to %d (must be <=%d)!", cc, 0x0F);
+      pd_error(x, "unable to resize CSRC to %d (must be <%d)!", cc, 0x0F);
     }
   }  else     post("cc: %d", x->x_rtpheader.cc);
 }
