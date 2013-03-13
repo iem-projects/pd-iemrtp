@@ -255,13 +255,13 @@ static void L16pay_ts(t_L16pay *x, t_symbol*s, int argc, t_atom*argv) {
   if(argc)
     x->x_rtpheader.ts = GETUINT32(argc, argv);
   else
-    post("timestamp: %u",   x->x_rtpheader.ts);
+    post("timestamp: %08x",   x->x_rtpheader.ts);
 }
 static void L16pay_SSRC(t_L16pay *x, t_symbol*s, int argc, t_atom*argv) {
   if(argc)
     x->x_rtpheader.ssrc = GETUINT32(argc, argv);
   else
-    post("SSRC: %u",   x->x_rtpheader.ssrc);
+    post("SSRC: %08x",   x->x_rtpheader.ssrc);
 }
 static void L16pay_CSRC(t_L16pay *x, t_symbol*s, int argc, t_atom*argv) {
   unsigned int i;
@@ -283,7 +283,7 @@ static void L16pay_CSRC(t_L16pay *x, t_symbol*s, int argc, t_atom*argv) {
     }
   } else {
     for(i=0; i<x->x_rtpheader.cc; i++) {
-      post("CSRC[%d]: %u",   i, x->x_rtpheader.csrc[i]);
+      post("CSRC[%d]: %08x",   i, x->x_rtpheader.csrc[i]);
     }
   }
 }
