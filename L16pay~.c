@@ -250,7 +250,7 @@ void L16pay_tilde_setup(void)
 	class_addmethod(L16pay_class, nullfn, gensym("signal"), 0);
 	class_addmethod(L16pay_class, (t_method)L16pay_dsp, gensym("dsp"), 0);
 
-	class_addmethod(L16pay_class, (t_method)L16pay_MTU, gensym("mtu"), A_FLOAT, 0);
 	class_addmethod(L16pay_class, (t_method)L16pay_start, gensym("start"), 0);
 	class_addmethod(L16pay_class, (t_method)L16pay_stop , gensym("stop" ), 0);
+	class_addmethod(L16pay_class, (t_method)L16pay_MTU, gensym("mtu"), A_FLOAT, 0);
 }
