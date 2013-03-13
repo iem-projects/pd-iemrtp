@@ -258,8 +258,8 @@ static void L16pay_CSRC(t_L16pay *x, t_symbol*s, int argc, t_atom*argv) {
     case 2: case 3: do {
         int index=atom_getint(argv);
         u_int32 id = GETUINT32(argc-1, argv+1);
-        if(!rtpheader_ensureCSRC(&x->x_rtpheader, index)) {
-          pd_error(x, "couldn't set resize CSRC to %d (must be <=%d)", index, 0x0F);
+        if(!rtpheader_ensureCSRC(&x->x_rtpheader, index+1)) {
+          pd_error(x, "couldn't set CSRC-id to %d (must be <%d)", index, 0x0F);
           return;
         }
         x->x_rtpheader.csrc[index]=id;
