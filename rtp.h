@@ -82,8 +82,7 @@ STATIC_INLINE int rtpheader_ensureCSRC(t_rtpheader*rtpheader, int size) {
   u_int32*csrc = NULL;
   int i;
   if(size>0x0F || size < 0)return 0; /* invalid size */
-  if(size<=rtpheader->cc)return size; /* already large enough */
-
+  if(size<=rtpheader->cc  )return size; /* already large enough */
   csrc = calloc(size, sizeof(u_int32));
   if(!csrc)return 0;
 
