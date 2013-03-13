@@ -4,14 +4,16 @@ TODO for the RTP-bindings
 
 RTCP support
 ------------
-currently we have only implemented the streaming (RTP) part of the protocol.
-but we really should also do the RTCP part
+rtcpparser:
+        almost completed
+        - SDES packets with multiple chunks are not supported yet
+        + SDES packets with a single chunk with multiple items _are_ supported
+rtcpassembler:
+        TODO
 
-depayloader
------------
-provide the decoded signals in a user-friendly way, e.g. using send~
+RTP
+---
+L16pay~:
+        allow to set timestamp
 
-L16 payloading
---------------
-there is a lot of noise in the L16 payload
-(check whether it's the encoder or the decoder)
+
