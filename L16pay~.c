@@ -192,6 +192,88 @@ static void L16pay_stop(t_L16pay *x) {
   L16pay_state(x, 0);
 }
 
+static void L16pay_version(t_L16pay *x, t_symbol*s, int argc, t_atom*argv) {
+  if(argc) {
+    int version = atom_getint(argv);
+    if(version != 2) pd_error(x, "currently only version '2' is supported!");
+    x->x_rtpheader.version = 2;
+  }  else     post("version: %d", x->x_rtpheader.version);
+}
+static void L16pay_p(t_L16pay *x, t_symbol*s, int argc, t_atom*argv) {
+  if(argc) {
+    int p = atom_getint(argv);
+    if(p != 0) pd_error(x, "currently only padding '0' is supported!");
+    x->x_rtpheader.p = 0;
+  }  else     post("p: %d", x->x_rtpheader.p);
+}
+static void L16pay_x(t_L16pay *x, t_symbol*s, int argc, t_atom*argv) {
+  if(argc) {
+    int ext = atom_getint(argv);
+    if(ext != 0) pd_error(x, "currently only extension '0' is supported!");
+    x->x_rtpheader.x = 0;
+  }  else     post("x: %d", x->x_rtpheader.x);
+}
+static void L16pay_cc(t_L16pay *x, t_symbol*s, int argc, t_atom*argv) {
+  if(argc) {
+    int cc = atom_getint(argv);
+    if(!rtpheader_ensureCSRC(&x->x_rtpheader, cc)) {
+      pd_error(x, "unable to resize CSRC to %d (must be <=%d)!", cc, 0x0F);
+    }
+  }  else     post("cc: %d", x->x_rtpheader.cc);
+}
+static void L16pay_m(t_L16pay *x, t_symbol*s, int argc, t_atom*argv) {
+  if(argc) {
+    int m = atom_getint(argv);
+    x->x_rtpheader.m = (m!=0);
+  }  else     post("marker: %d", x->x_rtpheader.m);
+}
+static void L16pay_pt(t_L16pay *x, t_symbol*s, int argc, t_atom*argv) {
+  if(argc) {
+    int pt = atom_getint(argv);
+    x->x_rtpheader.pt = pt;
+  }  else     post("pt: %d", x->x_rtpheader.pt);
+}
+static void L16pay_seq(t_L16pay *x, t_symbol*s, int argc, t_atom*argv) {
+  if(argc) {
+    int seq = atom_getint(argv);
+    x->x_rtpheader.seq = seq;
+  }  else     post("seq: %d", x->x_rtpheader.seq);
+}
+static void L16pay_ts(t_L16pay *x, t_symbol*s, int argc, t_atom*argv) {
+  if(argc)
+    x->x_rtpheader.ts = GETUINT32(argc, argv);
+  else
+    post("timestamp: %u",   x->x_rtpheader.ts);
+}
+static void L16pay_SSRC(t_L16pay *x, t_symbol*s, int argc, t_atom*argv) {
+  if(argc)
+    x->x_rtpheader.ssrc = GETUINT32(argc, argv);
+  else
+    post("SSRC: %u",   x->x_rtpheader.ssrc);
+}
+static void L16pay_CSRC(t_L16pay *x, t_symbol*s, int argc, t_atom*argv) {
+  unsigned int i;
+  if(argc) {
+    switch(argc) {
+    case 2: case 3: do {
+        int index=atom_getint(argv);
+        u_int32 id = GETUINT32(argc-1, argv+1);
+        if(!rtpheader_ensureCSRC(&x->x_rtpheader, index)) {
+          pd_error(x, "couldn't set resize CSRC to %d (must be <=%d)", index, 0x0F);
+          return;
+        }
+        x->x_rtpheader.csrc[index]=id;
+      } while(0);
+      break;
+    default:
+      pd_error(x, "usage: CSRC <index> <ID:hi> <ID:lo>");
+      return;
+    }
+  } else {
+    for(i=0; i<x->x_rtpheader.cc; i++) {
+      post("CSRC[%d]: %u",   i, x->x_rtpheader.csrc[i]);
+    }
+  }
 }
 
 
@@ -259,4 +341,26 @@ void L16pay_tilde_setup(void)
 	class_addmethod(L16pay_class, (t_method)L16pay_start, gensym("start"), 0);
 	class_addmethod(L16pay_class, (t_method)L16pay_stop , gensym("stop" ), 0);
 	class_addmethod(L16pay_class, (t_method)L16pay_MTU, gensym("mtu"), A_FLOAT, 0);
+
+
+	class_addmethod(L16pay_class, (t_method)L16pay_version,
+                  SELECTOR_RTPHEADER_VERSION, A_GIMME, 0);
+	class_addmethod(L16pay_class, (t_method)L16pay_p,
+                  SELECTOR_RTPHEADER_P, A_GIMME, 0);
+	class_addmethod(L16pay_class, (t_method)L16pay_x,
+                  SELECTOR_RTPHEADER_X, A_GIMME, 0);
+	class_addmethod(L16pay_class, (t_method)L16pay_cc,
+                  SELECTOR_RTPHEADER_CC, A_GIMME, 0);
+	class_addmethod(L16pay_class, (t_method)L16pay_m,
+                  SELECTOR_RTPHEADER_M, A_GIMME, 0);
+	class_addmethod(L16pay_class, (t_method)L16pay_pt,
+                  SELECTOR_RTPHEADER_PT, A_GIMME, 0);
+	class_addmethod(L16pay_class, (t_method)L16pay_seq,
+                  SELECTOR_RTPHEADER_SEQ, A_GIMME, 0);
+	class_addmethod(L16pay_class, (t_method)L16pay_ts,
+                  SELECTOR_RTPHEADER_TS, A_GIMME, 0);
+	class_addmethod(L16pay_class, (t_method)L16pay_SSRC,
+                  SELECTOR_RTPHEADER_SSRC, A_GIMME, 0);
+	class_addmethod(L16pay_class, (t_method)L16pay_CSRC,
+                  SELECTOR_RTPHEADER_CSRC, A_GIMME, 0);
 }
