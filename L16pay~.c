@@ -163,7 +163,6 @@ static void L16pay_dsp(t_L16pay *x, t_signal **sp)
   u_int32 c;
 
   x->x_vecsize=sp[0]->s_n;
-  x->x_rtpheader.m    = 1;
 
   L16pay_preparePacket(x);
 
@@ -185,6 +184,9 @@ static void L16pay_MTU(t_L16pay *x, t_floatarg f)
 }
 
 static void L16pay_state(t_L16pay *x, t_float f) {
+  if((int)f)
+    x->x_rtpheader.m    = 1;
+
   x->x_running = (int)f;
 }
 
