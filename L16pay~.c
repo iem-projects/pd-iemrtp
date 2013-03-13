@@ -181,11 +181,17 @@ static void L16pay_MTU(t_L16pay *x, t_floatarg f)
   }
 }
 
+static void L16pay_state(t_L16pay *x, t_float f) {
+  x->x_running = (int)f;
+}
+
 static void L16pay_start(t_L16pay *x) {
-  x->x_running=1;
+  L16pay_state(x, 1);
 }
 static void L16pay_stop(t_L16pay *x) {
-  x->x_running=0;
+  L16pay_state(x, 0);
+}
+
 }
 
 
