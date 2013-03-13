@@ -25,6 +25,7 @@ typedef struct _L16pay
 	t_object x_obj;
   t_sample**x_in;
   u_int8 x_running;
+  u_int8 x_banged;
   u_int32 x_channels;  // number of channels
   u_int32 x_vecsize;   // Pd's blocksize
   u_int32 x_mtu;       // MTU of the socket
@@ -90,7 +91,9 @@ static t_int *L16pay_perform(t_int *w)
   u_int8*buffer=x->x_buffer;
 
   x->x_rtpheader.ts  += vecsize;
-  if(!x->x_running)return(w+2);
+
+  if(!x->x_running && !x->x_banged)return(w+2);
+  x->x_banged=0;
 
   for(n=0; n<vecsize; n++) {
     for (c=0;c<channels;c++) {
@@ -187,6 +190,9 @@ static void L16pay_state(t_L16pay *x, t_float f) {
 
 static void L16pay_start(t_L16pay *x) {
   L16pay_state(x, 1);
+}
+static void L16pay_bang(t_L16pay *x) {
+  x->x_banged=1;
 }
 static void L16pay_stop(t_L16pay *x) {
   L16pay_state(x, 0);
@@ -342,6 +348,7 @@ void L16pay_tilde_setup(void)
 	class_addmethod(L16pay_class, nullfn, gensym("signal"), 0);
 	class_addmethod(L16pay_class, (t_method)L16pay_dsp, gensym("dsp"), 0);
 
+	class_addbang  (L16pay_class, (t_method)L16pay_bang);
 	class_addmethod(L16pay_class, (t_method)L16pay_start, gensym("start"), 0);
 	class_addmethod(L16pay_class, (t_method)L16pay_stop , gensym("stop" ), 0);
 	class_addmethod(L16pay_class, (t_method)L16pay_MTU, gensym("mtu"), A_FLOAT, 0);
