@@ -90,7 +90,6 @@ static t_int *L16pay_perform(t_int *w)
   t_sample**ins=x->x_in;
   u_int8*buffer=x->x_buffer;
 
-  x->x_rtpheader.ts  += vecsize;
 
   if(!x->x_running && !x->x_banged)return(w+2);
   x->x_banged=0;
@@ -149,6 +148,7 @@ static void L16pay_tick(t_L16pay *x) {      /* callback function for the clock *
     outlet_list(x->x_obj.ob_outlet, &s_list, headersize+packetsize, x->x_atombuffer);
 
     x->x_rtpheader.seq += 1;
+    x->x_rtpheader.ts  += frames;
     x->x_rtpheader.m    = 0;
 
     payload-=packetsize;
