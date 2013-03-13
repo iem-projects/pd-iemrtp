@@ -65,6 +65,19 @@ STATIC_INLINE u_int32 SETUINT32(t_atom ap[2], u_int32 i) {
   return 2;
 }
 /**
+ * @brief convert a list of two 16bit unsigned integers into a 32bit unsigned integer
+ * @param ap pointer to atom-array to retrieve the u_int32 from
+ * @return the u_int32 value
+ */
+STATIC_INLINE u_int32 GETUINT32(int argc, t_atom*argv) {
+  u_int32 result=0;
+  int i;
+  for(i=0; i<argc; i++) {
+    result=(result<<16)+atom_getint(argv+i);
+  }
+  return result;
+}
+/**
  * @brief read 16bit unsigned integer from byte array (BIG-ENDIAN)
  * @param ap pointer to atom-array to read u_int16 from
  * @return the u_int16
