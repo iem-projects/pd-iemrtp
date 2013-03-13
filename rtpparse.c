@@ -37,7 +37,7 @@ static void rtpparse_bang(t_rtpparse*x){
   unsigned int cc = rtp->cc, c;
   t_outlet*out=x->x_infoout;
   SETFLOAT(ap+0, version);
-  outlet_anything(out, gensym("version"), 1, ap);
+  outlet_anything(out, SELECTOR_RTPHEADER_VERSION, 1, ap);
   if(version!=2) {
     static int printerror=1;
     if(printerror)
@@ -46,25 +46,25 @@ static void rtpparse_bang(t_rtpparse*x){
   }
 
   SETFLOAT(ap+0, rtp->p);
-  outlet_anything(out, gensym("padding"), 1, ap);
+  outlet_anything(out, SELECTOR_RTPHEADER_P, 1, ap);
   SETFLOAT(ap+0, rtp->x);
-  outlet_anything(out, gensym("extension"), 1, ap);
+  outlet_anything(out, SELECTOR_RTPHEADER_X, 1, ap);
   SETFLOAT(ap+0, rtp->cc);
-  outlet_anything(out, gensym("cc"), 1, ap);
+  outlet_anything(out, SELECTOR_RTPHEADER_CC, 1, ap);
   SETFLOAT(ap+0, rtp->m);
-  outlet_anything(out, gensym("marker"), 1, ap);
+  outlet_anything(out, SELECTOR_RTPHEADER_M, 1, ap);
   SETFLOAT(ap+0, rtp->pt);
-  outlet_anything(out, gensym("payload_type"), 1, ap);
+  outlet_anything(out, SELECTOR_RTPHEADER_PT, 1, ap);
   SETFLOAT(ap+0, rtp->seq);
-  outlet_anything(out, gensym("sequence_number"), 1, ap);
+  outlet_anything(out, SELECTOR_RTPHEADER_SEQ, 1, ap);
   SETUINT32(ap, rtp->ts);
-  outlet_anything(out, gensym("timestamp"), 2, ap);
+  outlet_anything(out, SELECTOR_RTPHEADER_TS, 2, ap);
   SETUINT32(ap, rtp->ssrc);
-  outlet_anything(out, gensym("SSRC"), 2, ap);
+  outlet_anything(out, SELECTOR_RTPHEADER_SSRC, 2, ap);
   for(c=0; c<cc; c++) {
     SETFLOAT(ap+0, c);
     SETUINT32(ap+1, rtp->csrc[c]);
-    outlet_anything(out, gensym("CSRC"), 3, ap);
+    outlet_anything(out, SELECTOR_RTPHEADER_CSRC, 3, ap);
   }
 }
 

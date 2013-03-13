@@ -21,6 +21,19 @@
 #define RTP_BYTESPERSAMPLE 2
 #define EMPTYPACKETBYTES 100
 
+
+#define SELECTOR_RTPHEADER_VERSION gensym("version")
+#define SELECTOR_RTPHEADER_P       gensym("padding")
+#define SELECTOR_RTPHEADER_X       gensym("extension")
+#define SELECTOR_RTPHEADER_CC      gensym("cc")
+#define SELECTOR_RTPHEADER_M       gensym("m")
+#define SELECTOR_RTPHEADER_PT      gensym("payload_type")
+#define SELECTOR_RTPHEADER_SEQ     gensym("sequence_number")
+#define SELECTOR_RTPHEADER_TS      gensym("timestamp")
+#define SELECTOR_RTPHEADER_SSRC    gensym("SSRC")
+#define SELECTOR_RTPHEADER_CSRC    gensym("CSRC")
+
+
 typedef struct _rtpheader {
   /* byte#1 */
   unsigned int version:2;   /* protocol version */
