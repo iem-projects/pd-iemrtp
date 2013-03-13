@@ -1,49 +1,89 @@
-#N canvas 1343 337 800 438 10;
-#X obj 172 120 L16pay~ 2;
-#X msg 51 84 start;
-#X msg 45 117 stop;
-#X obj 47 16 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 1 1
-;
-#X obj 41 51 select 0;
-#X msg 209 62 \; pd dsp \$1;
-#X obj 206 30 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 1
+#N canvas 1345 329 800 438 10;
+#X obj 136 242 L16pay~ 2;
+#X msg 575 49 \; pd dsp \$1;
+#X obj 575 27 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
 1;
-#X floatatom 131 31 5 0 0 0 - - -;
-#X msg 244 104 mtu 1500;
-#X obj 172 228 iemnet/udpsend;
-#X obj 311 377 print 3rd;
-#X msg 166 325 port 5005;
-#X obj 171 370 print :5005:;
-#X obj 171 348 iemnet/udpreceive 5005;
-#X msg 336 340 print oo;
-#X obj 201 390 print 2nd;
-#X obj 507 98 adc~;
-#X obj 507 120 tabwrite~ foo;
-#X msg 554 75 bang;
-#X obj 622 94 table foo 4096;
-#X obj 518 214 dac~;
-#X msg 197 201 disconnect \, connect localhost 6000;
-#X msg 622 52 \; foo resize \$1;
-#X floatatom 624 29 5 0 0 0 - - -;
-#X obj 136 54 osc~ 440;
-#X connect 0 0 9 0;
-#X connect 1 0 0 0;
-#X connect 2 0 0 0;
-#X connect 3 0 4 0;
-#X connect 4 0 2 0;
-#X connect 4 1 1 0;
-#X connect 6 0 5 0;
-#X connect 7 0 24 0;
+#X msg 282 115 mtu 1500;
+#X obj 136 94 sig~ 1;
+#X obj 195 94 osc~ 440;
+#X obj 227 225 t a;
+#X text 114 17 [L15pay~] RTP-payloader for audio/L16 profile (16bit
+signed);
+#X text 118 44 args: #channels;
+#X obj 256 225 r \$0-ctl;
+#N canvas 900 603 645 357 getters 1;
+#X msg 79 61 version;
+#X msg 79 83 padding;
+#X msg 79 105 extension;
+#X msg 79 127 cc;
+#X msg 79 149 marker;
+#X msg 79 171 payload_type;
+#X msg 79 193 sequence_number;
+#X msg 79 215 timestamp;
+#X msg 79 237 SSRC;
+#X msg 79 259 CSRC;
+#X obj 79 289 t a;
+#X obj 79 311 s \$0-ctl;
+#X text 85 32 (these commands are variants of the "setter" methods
+\, that take extra arguments to set the specified values);
+#X text 99 15 getting info on the current RTP packet header;
+#X text 198 131 print the current value of the given field to the Pd-console
+;
+#X connect 0 0 10 0;
+#X connect 1 0 10 0;
+#X connect 2 0 10 0;
+#X connect 3 0 10 0;
+#X connect 4 0 10 0;
+#X connect 5 0 10 0;
+#X connect 6 0 10 0;
+#X connect 7 0 10 0;
+#X connect 8 0 10 0;
+#X connect 9 0 10 0;
+#X connect 10 0 11 0;
+#X restore 357 194 pd getters;
+#N canvas 62 550 645 357 setters 1;
+#X obj 79 289 t a;
+#X obj 79 311 s \$0-ctl;
+#X text 99 15 setting info in the next RTP packet header;
+#X text 85 32 (these commands are variants of the "getter" methods
+\, that take no arguments);
+#X msg 79 61 version 2;
+#X msg 79 83 padding 0;
+#X msg 79 105 extension 0;
+#X msg 79 237 cc 5;
+#X msg 79 259 CSRC 2 127 12;
+#X text 182 257 <slot> <IDhi> <IDlo>: write given CSRC-id (127<<16+12=0x007F000C)
+into slot. (number of slots will be resized if needed);
+#X text 184 238 set the number of CSRC-ids (and initialize new ones
+to 0);
+#X msg 79 217 SSRC 712 321;
+#X text 186 222 <IDhi> <IDlo>: set the SSRC-id (712<<16+321 = 0x02C80141)
+;
+#X msg 79 195 timestamp 1024 0;
+#X msg 79 173 sequence_number 21;
+#X text 219 167 <seq>: set sequence number (will be automatically incremented
+for each packet);
+#X text 210 192 <TShi> <TSlo>: set timestamp (1024<<16+0 = 0x04000000)
+\; will be automatically incremented each DSP-cycle;
+#X msg 79 151 payload_type 96;
+#X text 224 149 <pt>: set payload type (96);
+#X msg 79 129 marker 1;
+#X text 221 132 <1|0>: set marker-bit;
+#X connect 0 0 1 0;
+#X connect 4 0 0 0;
+#X connect 5 0 0 0;
+#X connect 6 0 0 0;
+#X connect 7 0 0 0;
 #X connect 8 0 0 0;
-#X connect 11 0 13 0;
-#X connect 13 0 12 0;
-#X connect 13 1 15 0;
-#X connect 13 2 10 0;
-#X connect 14 0 10 0;
-#X connect 16 0 17 0;
-#X connect 16 0 20 1;
-#X connect 18 0 17 0;
-#X connect 21 0 9 0;
-#X connect 23 0 22 0;
-#X connect 24 0 0 0;
-#X connect 24 0 20 0;
+#X connect 11 0 0 0;
+#X connect 13 0 0 0;
+#X connect 14 0 0 0;
+#X connect 17 0 0 0;
+#X connect 19 0 0 0;
+#X restore 357 173 pd setters;
+#X connect 2 0 1 0;
+#X connect 3 0 6 0;
+#X connect 4 0 0 0;
+#X connect 5 0 0 1;
+#X connect 6 0 0 0;
+#X connect 9 0 6 0;
