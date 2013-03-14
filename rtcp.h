@@ -38,6 +38,47 @@ typedef enum {
   RTCP_SDES_PRIV  = 8
 } rtcp_sdes_type_t;
 
+
+#define SELECTOR_RTCP_HEADER_VERSION  gensym("version")
+#define SELECTOR_RTCP_HEADER_P        gensym("padding")
+#define SELECTOR_RTCP_HEADER_COUNT    gensym("count")
+#define SELECTOR_RTCP_HEADER_PT       gensym("payload_type")
+#define SELECTOR_RTCP_HEADER_TYPE     gensym("type")
+
+#define SELECTOR_RTCP_RR          gensym("RR")
+#define SELECTOR_RTCP_RR_SSRC     gensym("SSRC")
+#define SELECTOR_RTCP_RR_FRACTION gensym("fraction")
+#define SELECTOR_RTCP_RR_LOST     gensym("lost")
+#define SELECTOR_RTCP_RR_LAST_SEQ gensym("last_seq")
+#define SELECTOR_RTCP_RR_JITTER   gensym("jitter")
+#define SELECTOR_RTCP_RR_LSR      gensym("lsr")
+#define SELECTOR_RTCP_RR_DLSR     gensym("dlsr")
+
+#define SELECTOR_RTCP_SR          gensym("SR")
+#define SELECTOR_RTCP_SR_SSRC     SELECTOR_RTCP_RR_SSRC
+#define SELECTOR_RTCP_SR_NTP      gensym("NTP")
+#define SELECTOR_RTCP_SR_TS       gensym("timestamp")
+#define SELECTOR_RTCP_SR_PSENT    gensym("packets_sent")
+#define SELECTOR_RTCP_SR_OSENT    gensym("octets_sent")
+
+#define SELECTOR_RTCP_SDES       gensym("SDES")
+#define SELECTOR_RTCP_SDES_SRC   gensym("SRC")
+#define SELECTOR_RTCP_SDES_SSRC  SELECTOR_RTCP_RR_SSRC
+#define SELECTOR_RTCP_SDES_END   gensym("END")
+#define SELECTOR_RTCP_SDES_CNAME gensym("CNAME")
+#define SELECTOR_RTCP_SDES_NAME  gensym("NAME")
+#define SELECTOR_RTCP_SDES_EMAIL gensym("EMAIL")
+#define SELECTOR_RTCP_SDES_PHONE gensym("PHONE")
+#define SELECTOR_RTCP_SDES_LOC   gensym("LOC")
+#define SELECTOR_RTCP_SDES_TOOL  gensym("TOOL")
+#define SELECTOR_RTCP_SDES_NOTE  gensym("NOTE")
+#define SELECTOR_RTCP_SDES_PRIV  gensym("PRIV")
+
+#define SELECTOR_RTCP_BYE        gensym("BYE")
+#define SELECTOR_RTCP_BYE_SRC    gensym("SRC")
+
+#define SELECTOR_RTCP_APP        gensym("APP")
+
 /*
  * RTCP common header word
  */
