@@ -1,5 +1,5 @@
 /*
- * rtcpparse: parse RTCP packages to get some info
+ * unpackRTCP: parse RTCP packages to get some info
  *
  * (c) 2013 IOhannes m zmölnig, institute of electronic music and acoustics (iem)
  *
@@ -18,16 +18,16 @@
  */
 #include "iemrtp.h"
 #include <stdlib.h>
-static t_class *rtcpparse_class;
+static t_class *unpackRTCP_class;
 
-typedef struct _rtcpparse
+typedef struct _unpackRTCP
 {
 	t_object x_obj;
   t_outlet*x_countout;
   t_outlet*x_infoout;
   t_outlet*x_rejectout;
   rtcp_t x_rtcpheader;
-} t_rtcpparse;
+} t_unpackRTCP;
 
 static void rtcp_freemembers(rtcp_t*x) {
   switch(x->common.pt) {
@@ -218,7 +218,7 @@ static u_int32 atoms2rtcp(int argc, t_atom*argv, rtcp_t*x) {
   return retval;
 }
 
-static void rtcpparse_rrlist(t_outlet*out, t_symbol*s, u_int32 argc, rtcp_rr_t*argv){
+static void unpackRTCP_rrlist(t_outlet*out, t_symbol*s, u_int32 argc, rtcp_rr_t*argv){
   t_atom ap[4];
   u_int32 i;
   for(i=0; i<argc; i++) {
@@ -254,7 +254,7 @@ static void rtcpparse_rrlist(t_outlet*out, t_symbol*s, u_int32 argc, rtcp_rr_t*a
     outlet_anything(out, s, 2+1, ap);
   }
 }
-static void rtcpparse_sdesitems(t_outlet*out, u_int32 argc, rtcp_sdes_item_t*argv){
+static void unpackRTCP_sdesitems(t_outlet*out, u_int32 argc, rtcp_sdes_item_t*argv){
   t_atom ap[2];
   t_symbol*s_sdes=gensym("SDES");
   u_int32 i;
@@ -313,7 +313,7 @@ static void rtcpparse_sdesitems(t_outlet*out, u_int32 argc, rtcp_sdes_item_t*arg
 }
 
 /* sender report */
-static void rtcpparse_sr(t_rtcpparse*x){
+static void unpackRTCP_sr(t_unpackRTCP*x){
   t_atom ap[4];
   t_outlet*out=x->x_infoout;
   rtcp_t*rtcp=&x->x_rtcpheader;
@@ -333,28 +333,28 @@ static void rtcpparse_sr(t_rtcpparse*x){
   SETUINT32(ap, rtcp->r.sr.osent);
   outlet_anything(out, gensym("octets_sent"), 2, ap);
 
-  rtcpparse_rrlist(out, gensym("SR"), rtcp->r.sr.rr_count, rtcp->r.sr.rr);
+  unpackRTCP_rrlist(out, gensym("SR"), rtcp->r.sr.rr_count, rtcp->r.sr.rr);
 }
-static void rtcpparse_rr(t_rtcpparse*x){
+static void unpackRTCP_rr(t_unpackRTCP*x){
   t_atom ap[2];
   t_outlet*out=x->x_infoout;
   rtcp_t*rtcp=&x->x_rtcpheader;
 
   SETUINT32(ap, rtcp->r.rr.ssrc);
   outlet_anything(out, gensym("SSRC"), 2, ap);
-  rtcpparse_rrlist(out, gensym("RR"), rtcp->r.rr.rr_count, rtcp->r.rr.rr);
+  unpackRTCP_rrlist(out, gensym("RR"), rtcp->r.rr.rr_count, rtcp->r.rr.rr);
 }
 
-static void rtcpparse_sdes(t_rtcpparse*x){
+static void unpackRTCP_sdes(t_unpackRTCP*x){
   t_atom ap[2];
   t_outlet*out=x->x_infoout;
   rtcp_t*rtcp=&x->x_rtcpheader;
 
   SETUINT32(ap, rtcp->r.sdes.src);
   outlet_anything(out, gensym("SRC"), 2, ap);
-  rtcpparse_sdesitems(out, rtcp->r.sdes.item_count, rtcp->r.sdes.item);
+  unpackRTCP_sdesitems(out, rtcp->r.sdes.item_count, rtcp->r.sdes.item);
 }
-static void rtcpparse_bye(t_rtcpparse*x){
+static void unpackRTCP_bye(t_unpackRTCP*x){
   t_atom ap[2];
   t_outlet*out=x->x_infoout;
   rtcp_t*rtcp=&x->x_rtcpheader;
@@ -366,7 +366,7 @@ static void rtcpparse_bye(t_rtcpparse*x){
   }
 }
 
-static void rtcpparse_rtcp(t_rtcpparse*x){
+static void unpackRTCP_rtcp(t_unpackRTCP*x){
   t_atom ap[4];
   rtcp_common_t*rtcp=&x->x_rtcpheader.common;
   unsigned int version = rtcp->version;
@@ -400,31 +400,31 @@ static void rtcpparse_rtcp(t_rtcpparse*x){
 
   switch(type) {
   case(RTCP_SR):
-    rtcpparse_sr(x);
+    unpackRTCP_sr(x);
     break;
   case(RTCP_RR):
-    rtcpparse_rr(x);
+    unpackRTCP_rr(x);
     break;
   case(RTCP_SDES):
-    rtcpparse_sdes(x);
+    unpackRTCP_sdes(x);
     break;
   case(RTCP_BYE):
-    rtcpparse_bye(x);
+    unpackRTCP_bye(x);
     break;
   case(RTCP_APP):
-    //rtcpparse_app(x);
+    //unpackRTCP_app(x);
     break;
   }
 }
 
-static void rtcpparse_list(t_rtcpparse*x, t_symbol*s, int argc, t_atom*argv){
+static void unpackRTCP_list(t_unpackRTCP*x, t_symbol*s, int argc, t_atom*argv){
   int pkt=0;
   int result=0;
   int offset=0;
   result=atoms2rtcp(argc, argv, &x->x_rtcpheader);
   while(result>0) {
     outlet_float(x->x_countout, pkt);
-    rtcpparse_rtcp(x);
+    unpackRTCP_rtcp(x);
     offset+=result;
     if(argc-offset<=0)
       return;
@@ -435,10 +435,10 @@ static void rtcpparse_list(t_rtcpparse*x, t_symbol*s, int argc, t_atom*argv){
     outlet_list(x->x_rejectout, s, argc+offset, argv-offset);
 }
 
-/* create rtcpparse with args <channels> <skip> */
-static void *rtcpparse_new(void)
+/* create unpackRTCP with args <channels> <skip> */
+static void *unpackRTCP_new(void)
 {
-	t_rtcpparse *x = (t_rtcpparse *)pd_new(rtcpparse_class);
+	t_unpackRTCP *x = (t_unpackRTCP *)pd_new(unpackRTCP_class);
 
 	x->x_infoout=outlet_new(&x->x_obj, &s_float);
 	x->x_countout=outlet_new(&x->x_obj, &s_list);
@@ -448,17 +448,17 @@ static void *rtcpparse_new(void)
 
 
 
-static void rtcpparse_free(t_rtcpparse *x) {
+static void unpackRTCP_free(t_unpackRTCP *x) {
   rtcp_freemembers(&x->x_rtcpheader);
   outlet_free(x->x_infoout);
   outlet_free(x->x_countout);
   outlet_free(x->x_rejectout);
 }
 
-void rtcpparse_setup(void)
+void unpackRTCP_setup(void)
 {
-	rtcpparse_class = class_new(gensym("rtcpparse"), (t_newmethod)rtcpparse_new, (t_method)rtcpparse_free,
-		sizeof(t_rtcpparse), 0,0);
+	unpackRTCP_class = class_new(gensym("unpackRTCP"), (t_newmethod)unpackRTCP_new, (t_method)unpackRTCP_free,
+		sizeof(t_unpackRTCP), 0,0);
 
-	class_addlist(rtcpparse_class, (t_method)rtcpparse_list);
+	class_addlist(unpackRTCP_class, (t_method)unpackRTCP_list);
 }

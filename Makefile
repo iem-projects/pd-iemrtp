@@ -7,7 +7,7 @@ LIBRARY_NAME = iemrtp
 # variable, help files will be included automatically, and for GUI
 # objects, the matching .tcl file too
 SOURCES = rtpparse.c \
-	rtcpparse.c \
+	unpackRTCP.c \
 	rtpL16pay~.c L16decode.c
 
 # list all pd objects (i.e. myobject.pd) files here, and their helpfiles will
