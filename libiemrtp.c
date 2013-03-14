@@ -671,7 +671,6 @@ void *iemrtp_rtppay_new(t_rtppay*x, int ichan, int bytespersample, t_rtppay_perf
   if(ichan < 1)
     ichan = 2;
   c=ichan;
-  post("instance: %x", x);
 
 	x->x_channels = ichan;
   x->x_vecsize  = 1024;
