@@ -118,7 +118,7 @@ static void packRTCP_count(t_packRTCP *x, t_symbol*s, int argc, t_atom*argv) {
 
 int setRR(rtcp_rr_t*rr, int argc, t_atom*argv) {
   t_symbol*s;
-  if(argc<1)return 0;
+  if(argc<2)return 0;
   s=atom_getsymbol(argv);
   if(0) { }
   else if(SELECTOR_RTCP_RR_SSRC     == s) rr->ssrc    =GETUINT32(argc-1, argv+1);
@@ -211,7 +211,7 @@ static void packRTCP_rr(t_packRTCP *x, t_symbol*s, int argc, t_atom*argv) {
       x->x_rtcp.r.rr.ssrc=GETUINT32(argc-1, argv+1);
     } else if(A_FLOAT==argv->a_type) { // 'RR <id> <VALhi> <VALlo>'
       int index;
-      if(argc<4) {
+      if(argc<3) {
         pd_error(x, "usage: %s <#> <type> <VALhi> <VALlo>...", s->s_name);
         return;
       }
