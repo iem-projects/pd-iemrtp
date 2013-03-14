@@ -1,5 +1,5 @@
 /*
- * L16pay: RTP-playloader for L16
+ * rtpL16pay: RTP-playloader for L16
  *
  * (c) 2013 IOhannes m zmölnig, institute of electronic music and acoustics (iem)
  *
@@ -18,11 +18,11 @@
  */
 #include "iemrtp.h"
 
-static t_class *L16pay_class;
-typedef struct _L16pay
+static t_class *rtpL16pay_class;
+typedef struct _rtpL16pay
 {
   t_rtppay x_obj;
-} t_L16pay;
+} t_rtpL16pay;
 
 
 /* ******************************************************************************** */
@@ -44,23 +44,23 @@ static void L16_perform(u_int32 vecsize, u_int32 channels, t_sample**ins, u_int8
   }
 }
 
-/* create L16pay with args <channels> <skip> */
-static void *L16pay_new(t_floatarg fchan)
+/* create rtpL16pay with args <channels> <skip> */
+static void *rtpL16pay_new(t_floatarg fchan)
 {
   int ichan = fchan;
-  t_L16pay *x = (t_L16pay *)pd_new(L16pay_class);
+  t_rtpL16pay *x = (t_rtpL16pay *)pd_new(rtpL16pay_class);
   return iemrtp_rtppay_new(&x->x_obj, ichan, 2, L16_perform);
 }
 
 
 
-static void L16pay_free(t_L16pay *x) {
+static void rtpL16pay_free(t_rtpL16pay *x) {
   iemrtp_rtppay_free(&x->x_obj);
 }
 
-void L16pay_tilde_setup(void)
+void rtpL16pay_tilde_setup(void)
 {
-  L16pay_class = class_new(gensym("L16pay~"), (t_newmethod)L16pay_new, (t_method)L16pay_free,
-                           sizeof(t_L16pay), 0, A_DEFFLOAT,0);
-  iemrtp_rtppay_classnew(L16pay_class);
+  rtpL16pay_class = class_new(gensym("rtpL16pay~"), (t_newmethod)rtpL16pay_new, (t_method)rtpL16pay_free,
+                           sizeof(t_rtpL16pay), 0, A_DEFFLOAT,0);
+  iemrtp_rtppay_classnew(rtpL16pay_class);
 }
