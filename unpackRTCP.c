@@ -177,7 +177,7 @@ static void unpackRTCP_bye(t_unpackRTCP*x){
   while((src=(*srcs++))) {
     SETFLOAT (ap+0, count++);
     SETUINT32(ap+1, src);
-    outlet_anything(out, SELECTOR_RTCP_BYE_SRC, 3, ap);
+    outlet_anything(out, SELECTOR_RTCP_BYE, 3, ap);
   }
 }
 
