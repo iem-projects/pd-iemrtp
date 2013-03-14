@@ -98,6 +98,43 @@ int iemrtp_atoms2rtpheader(int argc, t_atom*argv, t_rtpheader*rtpheader) {
   return retval;
 }
 
+/* ======================================================== */
+
+
+void iemrtp_rtcp_freemembers(rtcp_t*x) {
+  switch(x->common.pt) {
+  case(RTCP_SR  ):
+    if(x->r.sr.rr)freebytes(x->r.sr.rr, x->r.sr.rr_count*sizeof(rtcp_rr_t));
+    x->r.sr.rr=NULL;  x->r.sr.rr_count=0;
+    break;
+  case(RTCP_RR  ):
+    if(x->r.rr.rr)freebytes(x->r.rr.rr, x->r.rr.rr_count*sizeof(rtcp_rr_t));
+    x->r.rr.rr=NULL;  x->r.rr.rr_count=0;
+    break;
+  case(RTCP_SDES):
+    if(x->r.sdes.item) {
+      u_int32 i;
+      for(i=0; i<x->r.sdes.item_count; i++) {
+        rtcp_sdes_item_t*item=x->r.sdes.item+i;
+        free(item->data);
+        item->data=NULL; item->length=0; item->type=0;
+      }
+      freebytes(x->r.sdes.item, x->r.sdes.item_count*sizeof(rtcp_sdes_item_t));
+    }
+    x->r.sdes.item=NULL; x->r.sdes.item_count=0;
+    break;
+  case(RTCP_BYE ):
+    if(x->r.bye.src)freebytes(x->r.bye.src, x->r.bye.src_count*sizeof(u_int32));
+    x->r.bye.src=NULL;  x->r.bye.src_count=0;
+    break;
+  case(RTCP_APP ):
+    if(x->r.sr.rr)freebytes(x->r.sr.rr, x->r.sr.rr_count*sizeof(rtcp_rr_t));
+    x->r.sr.rr=NULL;  x->r.sr.rr_count=0;
+    break;
+  }
+}
+
+
 
 
 
