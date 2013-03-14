@@ -251,10 +251,8 @@ int iemrtp_atoms2rtcp(int argc, t_atom*argv, rtcp_t*x) {
   int retval=4;
   u_int16 length;
   iemrtp_rtcp_freemembers(x);
+  if(!argc) return -retval;
 
-  if(!argc) {
-    return -retval;
-  }
   b=atom_getint(argv+0);
   x->common.version=(b >> 6) & 0x03;
   x->common.p      =(b >> 5) & 0x01;
@@ -347,7 +345,6 @@ int iemrtp_rtcp2atoms(const rtcp_t*x, int argc, t_atom*ap) {
   padding =  4 - (reqbytes & 0x3); // packetsize must be 4byte aligned
   reqbytes += padding;
 
-  post("reqbytes=%d", reqbytes);
   if(argc<reqbytes)return -reqbytes; // header takes at least 4 bytes
 
   /* write header */
@@ -461,7 +458,6 @@ static void rtppay_preparePacket(t_rtppay*x) {
       SETFLOAT(x->x_atombuffer+i, 0);
     }
   }
-  post("\tbufsize: %d", x->x_atombuffersize);
 }
 
 

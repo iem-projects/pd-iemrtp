@@ -140,6 +140,5 @@ STATIC_INLINE int atombytes_setU16(u_int16 i, t_atom ap[2]) {
   return 2;
 }
 
-
 #include "rtp.h"
 #include "rtcp.h"

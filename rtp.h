@@ -65,7 +65,7 @@ void iemrtp_rtpheader_freemembers(t_rtpheader*rtpheader);
  * @brief make sure the CSRC-array is large enough
  * @param rtpheader pointer to initialized RTP-header
  * @param size minimum size of CSRC array.
- * @return the size of the CSRC-field ater a possible resize
+ * @return the size of the CSRC-field after a possible resize
  *         on error, 0 is returned
  */
 int iemrtp_rtpheader_ensureCSRC(t_rtpheader*rtpheader, int size);
