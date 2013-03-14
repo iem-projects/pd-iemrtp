@@ -195,7 +195,7 @@ static void packRTCP_sr(t_packRTCP *x, t_symbol*s, int argc, t_atom*argv) {
         return;
       }
     } else {
-      pd_error(x, "invalid field-id '%s'", s->s_name);
+      pd_error(x, "invalid field-id '%s'/'%s'", s->s_name, s1->s_name);
       return;
     }
     return;
