@@ -725,7 +725,7 @@ void iemrtp_rtppay_classnew(t_class*rtppay_class)
 	class_addmethod(rtppay_class, (t_method)rtppay_dsp, gensym("dsp"), 0);
 
 	class_addbang  (rtppay_class, (t_method)rtppay_bang);
-	class_addmethod(rtppay_class, (t_method)rtppay_state, gensym("auto"), A_FLOAT);
+	class_addmethod(rtppay_class, (t_method)rtppay_state, gensym("auto"), A_FLOAT, 0);
 	class_addmethod(rtppay_class, (t_method)rtppay_start, gensym("start"), 0);
 	class_addmethod(rtppay_class, (t_method)rtppay_stop , gensym("stop" ), 0);
 	class_addmethod(rtppay_class, (t_method)rtppay_MTU  , gensym("mtu"), A_FLOAT, 0);
