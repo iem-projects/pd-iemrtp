@@ -5,7 +5,7 @@
 #N canvas 5 49 450 300 RTP-packet-generator~ 0;
 #X obj 72 17 inlet;
 #X msg 72 39 auto \$1;
-#X obj 72 101 L16pay~;
+#X obj 72 101 rtpL16pay~;
 #X obj 159 51 osc~ 440;
 #X obj 159 77 phasor~ 440;
 #X obj 72 123 outlet;
@@ -111,7 +111,7 @@ timestamp \, SSRC- and CSRC-ids) are given as a pair of two numbers
 #X text 49 69 the 1st outlet of [unpackRTP] will give you the raw data
 (as a list of bytes) of the RTP-packet (minus the RTP-header that has
 been consumed by the object). most likely \, you will need to send
-it to a proper decoder in order to use it. e.g. [L16decode~];
+it to a proper decoder in order to use it. e.g. [rtpL16decode~];
 #X obj 42 165 spigot 1;
 #X connect 1 0 5 1;
 #X connect 2 0 5 0;
