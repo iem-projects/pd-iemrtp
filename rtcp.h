@@ -42,7 +42,6 @@ typedef enum {
 #define SELECTOR_RTCP_HEADER_VERSION  gensym("version")
 #define SELECTOR_RTCP_HEADER_P        gensym("padding")
 #define SELECTOR_RTCP_HEADER_COUNT    gensym("count")
-#define SELECTOR_RTCP_HEADER_PT       gensym("payload_type")
 #define SELECTOR_RTCP_HEADER_TYPE     gensym("type")
 
 #define SELECTOR_RTCP_RR          gensym("RR")
@@ -60,10 +59,11 @@ typedef enum {
 #define SELECTOR_RTCP_SR_TS       gensym("timestamp")
 #define SELECTOR_RTCP_SR_PSENT    gensym("packets_sent")
 #define SELECTOR_RTCP_SR_OSENT    gensym("octets_sent")
+#define SELECTOR_RTCP_SR_RR       SELECTOR_RTCP_RR
 
 #define SELECTOR_RTCP_SDES       gensym("SDES")
 #define SELECTOR_RTCP_SDES_SRC   gensym("SRC")
-#define SELECTOR_RTCP_SDES_SSRC  SELECTOR_RTCP_RR_SSRC
+
 #define SELECTOR_RTCP_SDES_END   gensym("END")
 #define SELECTOR_RTCP_SDES_CNAME gensym("CNAME")
 #define SELECTOR_RTCP_SDES_NAME  gensym("NAME")
