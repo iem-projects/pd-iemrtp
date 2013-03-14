@@ -23,7 +23,7 @@
 #X obj 68 246 t a a;
 #X obj 205 264 tgl 15 0 empty \$0-show empty 17 7 0 10 -262144 -1 -1
 1 1;
-#X text 37 8 [rtpparse] parse generic information from the header of
+#X text 37 8 [unpackRTP] parse generic information from the header of
 an RTP-packet;
 #X text 232 265 <- might lock Pd-GUI (when used with the RTP-packet-generator~)
 ;
@@ -42,8 +42,8 @@ an RTP-packet;
 #N canvas 5 49 555 299 reject 0;
 #X obj 88 147 print reject;
 #X obj 88 120 inlet reject;
-#X text 58 41 the 3rd outlet of [rtpparse] gives you the data that
-[rtpparse] identifies as "not RTP".;
+#X text 58 41 the 3rd outlet of [unpackRTP] gives you the data that
+[unpackRTP] identifies as "not RTP".;
 #X connect 1 0 0 0;
 #X restore 95 220 pd reject;
 #X obj 65 308 cnv 15 100 25 empty empty empty 20 12 0 14 -260097 -66577
@@ -108,7 +108,7 @@ timestamp \, SSRC- and CSRC-ids) are given as a pair of two numbers
 0 1;
 #X obj 42 27 inlet data;
 #X text 127 166 might lock Pd-GUI (as there is lots of data);
-#X text 49 69 the 1st outlet of [rtpparse] will give you the raw data
+#X text 49 69 the 1st outlet of [unpackRTP] will give you the raw data
 (as a list of bytes) of the RTP-packet (minus the RTP-header that has
 been consumed by the object). most likely \, you will need to send
 it to a proper decoder in order to use it. e.g. [L16decode~];
@@ -119,7 +119,7 @@ it to a proper decoder in order to use it. e.g. [L16decode~];
 #X restore 42 398 pd data;
 #X obj 26 186 cnv 15 100 25 empty empty empty 20 12 0 14 -4034 -66577
 0;
-#X obj 42 190 rtpparse;
+#X obj 42 190 unpackRTP;
 #X connect 0 0 1 0;
 #X connect 1 0 2 0;
 #X connect 1 1 19 0;
