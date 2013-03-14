@@ -33,7 +33,6 @@
 #define SELECTOR_RTPHEADER_SSRC    gensym("SSRC")
 #define SELECTOR_RTPHEADER_CSRC    gensym("CSRC")
 
-
 typedef struct _rtpheader {
   /* byte#1 */
   unsigned int version:2;   /* protocol version */
@@ -54,46 +53,31 @@ typedef struct _rtpheader {
 } t_rtpheader;
 
 
-STATIC_INLINE u_int32 iemrtp_rtpheader2atoms(t_rtpheader*rtpheader, t_atom*ap0) {
-  t_atom*ap=ap0;
-  u_int8 b;
-  u_int32 c, cc=rtpheader->cc;
-  b=(rtpheader->version << 6) | (rtpheader->p << 5) | (rtpheader->x << 4) | (rtpheader->cc << 0);
-  ap++->a_w.w_float=b;
+/**
+ * @brief free dynamically allocated members in RTP-header.
+ *        the rtp-header itself is not touched;
+ *        the freed members are set to valid (zero) values.
+ * @param rtpheader pointer to initialized RTP-header
+ */
+void iemrtp_rtpheader_freemembers(t_rtpheader*rtpheader);
 
-  b=(rtpheader->m << 7) | (rtpheader->pt << 0);
-  ap++->a_w.w_float=b;
+/**
+ * @brief make sure the CSRC-array is large enough
+ * @param rtpheader pointer to initialized RTP-header
+ * @param size minimum size of CSRC array.
+ * @return the size of the CSRC-field ater a possible resize
+ *         on error, 0 is returned
+ */
+int iemrtp_rtpheader_ensureCSRC(t_rtpheader*rtpheader, int size);
 
-  ap+=atombytes_setU16(rtpheader->seq, ap);
-  ap+=atombytes_setU32(rtpheader->ts , ap);
-  ap+=atombytes_setU32(rtpheader->ssrc,ap);
-  for(c=0; c < cc; c++) {
-    ap+=atombytes_setU32(rtpheader->csrc[c], ap);
-  }
-  return (12+cc*4);
-}
-
-STATIC_INLINE void iemrtp_rtpheader_freemembers(t_rtpheader*rtpheader) {
- if(rtpheader->csrc)free(rtpheader->csrc);
- rtpheader->csrc=NULL;
- rtpheader->cc=0;
-}
-STATIC_INLINE int iemrtp_rtpheader_ensureCSRC(t_rtpheader*rtpheader, int size) {
-  u_int32*csrc = NULL;
-  int i;
-  if(size>0x0F || size < 0)return 0; /* invalid size */
-  if(size<=rtpheader->cc  )return size; /* already large enough */
-  csrc = calloc(size, sizeof(u_int32));
-  if(!csrc)return 0;
-
-  for(i=0; i<rtpheader->cc; i++) {
-    csrc[i]=rtpheader->csrc[i];
-  }
-  rtpheader_freemembers(rtpheader);
-  rtpheader->csrc = csrc;
-  rtpheader->cc   = size;
-  return rtpheader->cc;
-}
+/**
+ * @brief synthesize a byte-package (atom list) from an rtpheader.
+ * @param argv array of bytes (as atoms) to write to
+ * @param rtpheader pointer to initialized RTP-header, that is used as input.
+ * @return the number of atoms consumed by the header
+ *         on error, 0 is returned
+ */
+u_int32 iemrtp_rtpheader2atoms(t_rtpheader*rtpheader, t_atom*argv);
 
 /**
  * @brief parse a byte-package (atom list) to an rtpheader.
@@ -104,39 +88,4 @@ STATIC_INLINE int iemrtp_rtpheader_ensureCSRC(t_rtpheader*rtpheader, int size) {
  * @return the number of bytes consumed by the header
  *         on error, 0 or a negative number (minimum expected packet size ) is returned
  */
-STATIC_INLINE int iemrtp_atoms2rtpheader(int argc, t_atom*argv, t_rtpheader*rtpheader) {
-  u_int8  b;
-  u_int8 cc;
-  int retval=12;
-
-  if(!argc) {
-    return -retval;
-  }
-
-  b=atom_getint(argv+0);
-  cc=(b >> 0) & 0x0F;
-  retval=12+cc*4;
-  if(argc<retval) {
-    return -retval;
-  }
-  rtpheader_freemembers(rtpheader);
-  rtpheader->csrc=malloc(cc * sizeof(u_int32));
-
-  rtpheader->version = (b >> 6) & 0x03;
-  rtpheader->p       = (b >> 5) & 0x01;
-  rtpheader->x       = (b >> 4) & 0x01;
-  rtpheader->cc      = cc;
-
-  b=atom_getint(argv+1);
-  rtpheader->m       = (b >> 7) & 0x01;
-  rtpheader->pt      = (b >> 0) & 0x7F;
-
-  rtpheader->seq  =atombytes_getU16(argv+2);
-  rtpheader->ts   =atombytes_getU32(argv+4);
-  rtpheader->ssrc =atombytes_getU32(argv+8);
-
-  for(b=0; b<cc; b++) {
-    rtpheader->csrc[b]=atombytes_getU32(argv+12+4*b);
-  }
-  return retval;
-}
+int iemrtp_atoms2rtpheader(int argc, t_atom*argv, t_rtpheader*rtpheader);
