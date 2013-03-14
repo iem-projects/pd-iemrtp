@@ -135,6 +135,161 @@ void iemrtp_rtcp_freemembers(rtcp_t*x) {
 }
 
 
+static void atoms2rtcp_rrlist(u_int32 frames, t_atom*argv, rtcp_rr_t*x) {
+  u_int32 f;
+  for(f=0; f<frames; f++) {
+    t_atom*ap=argv+f*24;
+    rtcp_rr_t*rr=x+f;
+    rr->ssrc    =atombytes_getU32(ap+ 0);
+    rr->fraction=atom_getint     (ap+ 4);
+    rr->lost    =atombytes_getU32(ap+ 5) >> 8;
+    rr->last_seq=atombytes_getU32(ap+ 8);
+
+    rr->jitter  =atombytes_getU32(ap+ 12);
+    rr->lsr     =atombytes_getU32(ap+ 16);
+    rr->dlsr    =atombytes_getU32(ap+ 20);
+  }
+}
+
+static u_int32 atoms2rtcp_sr(rtcp_common_sr_t*x, u_int32 argc, t_atom*argv) {
+  const u_int32 framesize=24;
+  u_int32 frames;
+  frames=(argc/framesize);
+  if(frames*framesize != argc) {
+    return -(frames*framesize);
+  }
+
+  x->ssrc     = atombytes_getU32(argv+ 0);
+  x->ntp_sec  = atombytes_getU32(argv+ 4);
+  x->ntp_frac = atombytes_getU32(argv+ 8);
+  x->rtp_ts   = atombytes_getU32(argv+12);
+  x->psent    = atombytes_getU32(argv+16);
+  x->osent    = atombytes_getU32(argv+20);
+
+  /* now comes a variable length list of rtcp_rr_t's, each 24 bytes */
+  x->rr_count=frames-1;
+  x->rr = getbytes(x->rr_count * sizeof(rtcp_rr_t));
+
+  atoms2rtcp_rrlist(x->rr_count, argv + 24, x->rr);
+
+  return argc;
+}
+static u_int32 atoms2rtcp_rr(rtcp_common_rr_t*x, u_int32 argc, t_atom*argv) {
+  const u_int32 framesize=24;
+  u_int32 frames=(argc-4)/framesize;
+  if(frames*framesize+4 != argc) {
+    return -(frames*framesize+4);
+  }
+
+  x->ssrc     = atombytes_getU32(argv+ 0);
+
+  /* now comes a variable length list of rtcp_rr_t's, each framesize bytes */
+  x->rr_count=frames;
+  x->rr = getbytes(x->rr_count * sizeof(rtcp_rr_t));
+
+  atoms2rtcp_rrlist(x->rr_count, argv + 4, x->rr);
+
+  return argc;
+}
+
+static u_int32 atoms2rtcp_sdes(rtcp_sdes_t*x, u_int32 argc, t_atom*argv) {
+#warning FIXME: SDES parser broken for multiple chunks
+  t_atom*ap;
+  u_int32 f, frames = 0;
+  u_int8 len;
+  u_int32 datalengths=0;
+  if(argc<4+1+1) { // SRC+item0.type+item0.length
+    return -(4+1+1);
+  }
+  x->src     = atombytes_getU32(argv+ 0);
+
+  /* count the number of items */
+  for(ap=argv+4;
+      datalengths<argc-4;
+      frames++) {
+    ap++; datalengths++ ; // skip type
+    len=atom_getint(ap++); datalengths++; //length of following string
+    ap+=len; datalengths+=len;
+  }
+
+  x->item_count=frames;
+  x->item = getbytes(x->item_count * sizeof(rtcp_sdes_item_t));
+
+  ap=argv+4;
+  for(f=0; f<frames; f++) {
+    u_int8 l;
+    rtcp_sdes_item_t*item=x->item+f;
+    item->type=atom_getint(ap++);
+    len=atom_getint(ap++);
+    item->length=len;
+    item->data=malloc(len+1);
+    for(l=0; l<len; l++) {
+      item->data[l]=atom_getint(ap++);
+    }
+    item->data[len]=0;
+  }
+  return argc;
+}
+
+
+
+static u_int32 atoms2rtcp_bye(rtcp_common_bye_t*x, u_int32 argc, t_atom*argv) {
+  u_int32 f, frames = (argc/4);
+  if(frames*4 != argc) {
+    return -(frames*4);
+  }
+  x->src_count=frames;
+  x->src = getbytes(x->src_count * sizeof(u_int32));
+
+  for(f=0; f<frames; f++) {
+    x->src[f] = atombytes_getU32(argv+4*f);
+  }
+  return argc;
+}
+int iemrtp_atoms2rtcp(int argc, t_atom*argv, rtcp_t*x) {
+  u_int8 b;
+  int retval=4;
+  u_int16 length;
+  iemrtp_rtcp_freemembers(x);
+
+  if(!argc) {
+    return -retval;
+  }
+  b=atom_getint(argv+0);
+  x->common.version=(b >> 6) & 0x03;
+  x->common.p      =(b >> 5) & 0x01;
+  x->common.count  =(b >> 0) & 0x1F;
+
+  b=atom_getint(argv+1);
+  x->common.pt     =b;
+
+  length =atombytes_getU16(argv+2);
+  x->common.length =length;
+
+  if((length+1)*4 > argc) {
+    return (-(length+1)*4);
+  }
+
+  switch(x->common.pt) {
+  case(RTCP_SR):
+    retval+=atoms2rtcp_sr(&(x->r.sr), length*4, argv+4);
+    break;
+  case(RTCP_RR):
+    retval+=atoms2rtcp_rr(&(x->r.rr), length*4, argv+4);
+    break;
+  case(RTCP_SDES):
+    retval+=atoms2rtcp_sdes(&(x->r.sdes), length*4, argv+4);
+    break;
+  case(RTCP_BYE):
+    retval+=atoms2rtcp_bye(&(x->r.bye), length*4, argv+4);
+    break;
+  case(RTCP_APP):
+    //atoms2rtcp_app(&(x->r.app), length*4, argv+4);
+    break;
+  }
+
+  return retval;
+}
 
 
 

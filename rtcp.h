@@ -178,3 +178,20 @@ typedef struct {
   /* ... */
 } source;
 
+/**
+ * @brief free dynamically allocated members in RTCP struct.
+ *        the rtcp struct itself is not freed;
+ *        the freed members are set to valid (zero) values.
+ * @param x pointer to initialized RTCP struct
+ */
+void iemrtp_rtcp_freemembers(rtcp_t*x);
+/**
+ * @brief parse a byte-package (atom list) to an rtcp struct.
+ * @param argc total length of the list
+ * @param argv array of bytes (as atoms)
+ * @param RTCP struct to initialized RTP-header, that is used as output.
+ * @note any dynamically allocated data in the RTCP struct will be deleted and replaced.
+ * @return the number of bytes consumed by the struct
+ *         on error, 0 or a negative number (minimum expected packet size ) is returned
+ */
+int iemrtp_atoms2rtcp(int argc, t_atom*argv, rtcp_t*x);
