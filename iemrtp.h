@@ -116,6 +116,19 @@ STATIC_INLINE int atombytes_setU32(u_int32 i, t_atom ap[4]) {
   return 4;
 }
 /**
+ * @brief convert a 24bit unsigned integer into a bytearray (in atoms, BIG_ENDIAN)
+ * @param i the 24bit unsigned integer (within a 32bit integer)
+ * @param ap pointer to atom-array to write bytes to; the atoms have to be initialized to float-atoms beforehand (e.g. using SETFLOAT)
+ * @return the number of atoms written (2)
+ */
+STATIC_INLINE int atombytes_setU24(u_int32 i, t_atom ap[3]) {
+  ap++->a_w.w_float=(i>>16) & 0xFF;
+  ap++->a_w.w_float=(i>> 8) & 0xFF;
+  ap++->a_w.w_float=(i>> 0) & 0xFF;
+  return 3;
+}
+
+/**
  * @brief convert a 16bit unsigned integer into a bytearray (in atoms, BIG_ENDIAN)
  * @param i the 16bit unsigned integer
  * @param ap pointer to atom-array to write bytes to; the atoms have to be initialized to float-atoms beforehand (e.g. using SETFLOAT)
