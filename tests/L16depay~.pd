@@ -1,6 +1,6 @@
 #N canvas 524 264 450 711 10;
 #X obj 101 224 r~ SM1-0;
-#X obj 126 95 L16pay~ 4;
+#X obj 126 95 rtpL16pay~ 4;
 #X obj 101 246 env~;
 #X floatatom 101 268 5 0 0 0 - - -;
 #X obj 71 345 dac~;
@@ -37,7 +37,7 @@
 #X obj 327 71 pow;
 #X floatatom 327 93 5 0 0 0 - - -;
 #X obj 106 41 osc~ 440;
-#X obj 126 144 L16depay~ 4 512 SM1-;
+#X obj 126 144 rtpL16depay~ 4 512 SM1-;
 #X connect 0 0 2 0;
 #X connect 0 0 4 0;
 #X connect 0 0 9 0;

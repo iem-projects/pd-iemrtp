@@ -1,5 +1,5 @@
 #N canvas 512 186 699 505 10;
-#X obj 120 121 L16pay~;
+#X obj 120 121 rtpL16pay~;
 #X msg 74 93 start;
 #X obj 159 60 sig~ 1;
 #X msg 276 103 \; pd dsp 1;
@@ -11,7 +11,7 @@
 #X obj 323 215 print;
 #X obj 362 169 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
 1;
-#X obj 120 143 rtpparse;
+#X obj 120 143 unpackRTP;
 #X obj 158 32 t f f;
 #X obj 219 303 * 32767;
 #X obj 219 325 int;

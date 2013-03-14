@@ -6,7 +6,7 @@
 #X obj 114 441 dac~;
 #X floatatom 145 47 5 0 0 0 - - -;
 #X msg 146 264 bang;
-#X obj 119 126 L16pay~ 4;
+#X obj 119 126 rtpL16pay~ 4;
 #X obj 291 330 t b;
 #X msg 271 304 bang;
 #X obj 119 306 t a a;
@@ -51,7 +51,7 @@
 #X obj 323 670 print samples;
 #X msg 274 445 bang;
 #X obj 438 261 t f f;
-#X obj 119 284 L16depay 4 1024;
+#X obj 119 284 rtpL16depay 4 1024;
 #X connect 3 0 7 0;
 #X connect 5 0 0 0;
 #X connect 6 0 51 0;

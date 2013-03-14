@@ -1,5 +1,5 @@
 #N canvas 340 287 776 415 10;
-#X obj 123 81 L16pay~ 2;
+#X obj 123 81 rtpL16pay~ 2;
 #X obj 124 50 sig~ 1;
 #X obj 193 54 osc~ 440;
 #X msg 224 94 start 1;
@@ -25,7 +25,7 @@
 165 255 127 255 171 255 127 255 177 255 127 255 184 255 127 255 191
 255 127 255 198 255;
 #X obj 310 291 L16decode 2;
-#X obj 310 251 rtpparse;
+#X obj 310 251 unpackRTP;
 #X obj 375 252 print RTP;
 #X obj 310 313 print DATA;
 #X connect 0 0 4 0;
