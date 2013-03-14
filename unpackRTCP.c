@@ -225,38 +225,38 @@ static void unpackRTCP_rrlist(t_outlet*out, t_symbol*s, u_int32 argc, rtcp_rr_t*
     rtcp_rr_t*rr=argv+i;
     SETFLOAT(ap+0, i);
 
-    SETSYMBOL(ap+1, gensym("SSRC"));
+    SETSYMBOL(ap+1, SELECTOR_RTCP_RR_SSRC);
     SETUINT32(ap+2, rr->ssrc);
     outlet_anything(out, s, 2, ap);
 
-    SETSYMBOL(ap+1, gensym("fraction"));
+    SETSYMBOL(ap+1, SELECTOR_RTCP_RR_FRACTION);
     SETFLOAT(ap+2, rr->fraction);
     outlet_anything(out, s, 2+1, ap);
 
-    SETSYMBOL(ap+1, gensym("lost"));
+    SETSYMBOL(ap+1, SELECTOR_RTCP_RR_LOST);
     SETFLOAT(ap+2, rr->lost);
     outlet_anything(out, s, 2+1, ap);
 
-    SETSYMBOL(ap+1, gensym("last_seq"));
+    SETSYMBOL(ap+1, SELECTOR_RTCP_RR_LAST_SEQ);
     SETUINT32(ap+2, rr->last_seq);
     outlet_anything(out, s, 2+1, ap);
 
-    SETSYMBOL(ap+1, gensym("jitter"));
+    SETSYMBOL(ap+1, SELECTOR_RTCP_RR_JITTER);
     SETUINT32(ap+2, rr->jitter);
     outlet_anything(out, s, 2+1, ap);
 
-    SETSYMBOL(ap+1, gensym("lsr"));
+    SETSYMBOL(ap+1, SELECTOR_RTCP_RR_LSR);
     SETUINT32(ap+2, rr->lsr);
     outlet_anything(out, s, 2+1, ap);
 
-    SETSYMBOL(ap+1, gensym("dlsr"));
+    SETSYMBOL(ap+1, SELECTOR_RTCP_RR_DLSR);
     SETUINT32(ap+2, rr->dlsr);
     outlet_anything(out, s, 2+1, ap);
   }
 }
 static void unpackRTCP_sdesitems(t_outlet*out, u_int32 argc, rtcp_sdes_item_t*argv){
   t_atom ap[2];
-  t_symbol*s_sdes=gensym("SDES");
+  t_symbol*s_sdes=SELECTOR_RTCP_SDES;
   u_int32 i;
   for(i=0; i<argc; i++) {
     rtcp_sdes_item_t*sdes=argv+i;
@@ -264,48 +264,48 @@ static void unpackRTCP_sdesitems(t_outlet*out, u_int32 argc, rtcp_sdes_item_t*ar
     switch(sdes->type) {
     case(RTCP_SDES_END  ):
       if(sdes->data && sdes->data[0]) {SETSYMBOL(ap+count, gensym(sdes->data)); count++; }
-      SETSYMBOL(ap, gensym("END"));
+      SETSYMBOL(ap, SELECTOR_RTCP_SDES_END);
       outlet_anything(out, s_sdes, count, ap);
       return;
       break;
     case(RTCP_SDES_CNAME): 
       if(sdes->data && sdes->data[0]) {SETSYMBOL(ap+count, gensym(sdes->data)); count++; }
-      SETSYMBOL(ap, gensym("CNAME"));
+      SETSYMBOL(ap, SELECTOR_RTCP_SDES_CNAME);
       outlet_anything(out, s_sdes, count, ap);
       break;
     case(RTCP_SDES_NAME ): 
       if(sdes->data && sdes->data[0]) {SETSYMBOL(ap+count, gensym(sdes->data)); count++; }
-      SETSYMBOL(ap, gensym("NAME"));
+      SETSYMBOL(ap, SELECTOR_RTCP_SDES_NAME);
       outlet_anything(out, s_sdes, count, ap);
       break;
     case(RTCP_SDES_EMAIL): 
       if(sdes->data && sdes->data[0]) {SETSYMBOL(ap+count, gensym(sdes->data)); count++; }
-      SETSYMBOL(ap, gensym("EMAIL"));
+      SETSYMBOL(ap, SELECTOR_RTCP_SDES_EMAIL);
       outlet_anything(out, s_sdes, count, ap);
       break;
     case(RTCP_SDES_PHONE): 
       if(sdes->data && sdes->data[0]) {SETSYMBOL(ap+count, gensym(sdes->data)); count++; }
-      SETSYMBOL(ap, gensym("PHONE"));
+      SETSYMBOL(ap, SELECTOR_RTCP_SDES_PHONE);
       outlet_anything(out, s_sdes, count, ap);
       break;
     case(RTCP_SDES_LOC  ): 
       if(sdes->data && sdes->data[0]) {SETSYMBOL(ap+count, gensym(sdes->data)); count++; }
-      SETSYMBOL(ap, gensym("LOC"));
+      SETSYMBOL(ap, SELECTOR_RTCP_SDES_LOC);
       outlet_anything(out, s_sdes, count, ap);
       break;
     case(RTCP_SDES_TOOL ): 
       if(sdes->data && sdes->data[0]) {SETSYMBOL(ap+count, gensym(sdes->data)); count++; }
-      SETSYMBOL(ap, gensym("TOOL"));
+      SETSYMBOL(ap, SELECTOR_RTCP_SDES_TOOL);
       outlet_anything(out, s_sdes, count, ap);
       break;
     case(RTCP_SDES_NOTE ): 
       if(sdes->data && sdes->data[0]) {SETSYMBOL(ap+count, gensym(sdes->data)); count++; }
-      SETSYMBOL(ap, gensym("NOTE"));
+      SETSYMBOL(ap, SELECTOR_RTCP_SDES_NOTE);
       outlet_anything(out, s_sdes, count, ap);
       break;
     case(RTCP_SDES_PRIV ): 
       if(sdes->data && sdes->data[0]) {SETSYMBOL(ap+count, gensym(sdes->data)); count++; }
-      SETSYMBOL(ap, gensym("PROV"));
+      SETSYMBOL(ap, SELECTOR_RTCP_SDES_PRIV);
       outlet_anything(out, s_sdes, count, ap);
       break;
     }
@@ -319,21 +319,21 @@ static void unpackRTCP_sr(t_unpackRTCP*x){
   rtcp_t*rtcp=&x->x_rtcpheader;
 
   SETUINT32(ap, rtcp->r.sr.ssrc);
-  outlet_anything(out, gensym("SSRC"), 2, ap);
+  outlet_anything(out, SELECTOR_RTCP_SR_SSRC, 2, ap);
 
   SETUINT32(ap+0, rtcp->r.sr.ntp_sec);
   SETUINT32(ap+2, rtcp->r.sr.ntp_frac);
-  outlet_anything(out, gensym("NTP"), 4, ap);
+  outlet_anything(out, SELECTOR_RTCP_SR_NTP, 4, ap);
 
   SETUINT32(ap, rtcp->r.sr.rtp_ts);
-  outlet_anything(out, gensym("timestamp"), 2, ap);
+  outlet_anything(out, SELECTOR_RTCP_SR_TS, 2, ap);
 
   SETUINT32(ap, rtcp->r.sr.psent);
-  outlet_anything(out, gensym("packets_sent"), 2, ap);
+  outlet_anything(out, SELECTOR_RTCP_SR_PSENT, 2, ap);
   SETUINT32(ap, rtcp->r.sr.osent);
-  outlet_anything(out, gensym("octets_sent"), 2, ap);
+  outlet_anything(out, SELECTOR_RTCP_SR_OSENT, 2, ap);
 
-  unpackRTCP_rrlist(out, gensym("SR"), rtcp->r.sr.rr_count, rtcp->r.sr.rr);
+  unpackRTCP_rrlist(out, SELECTOR_RTCP_SR, rtcp->r.sr.rr_count, rtcp->r.sr.rr);
 }
 static void unpackRTCP_rr(t_unpackRTCP*x){
   t_atom ap[2];
@@ -341,8 +341,8 @@ static void unpackRTCP_rr(t_unpackRTCP*x){
   rtcp_t*rtcp=&x->x_rtcpheader;
 
   SETUINT32(ap, rtcp->r.rr.ssrc);
-  outlet_anything(out, gensym("SSRC"), 2, ap);
-  unpackRTCP_rrlist(out, gensym("RR"), rtcp->r.rr.rr_count, rtcp->r.rr.rr);
+  outlet_anything(out, SELECTOR_RTCP_RR_SSRC, 2, ap);
+  unpackRTCP_rrlist(out, SELECTOR_RTCP_RR, rtcp->r.rr.rr_count, rtcp->r.rr.rr);
 }
 
 static void unpackRTCP_sdes(t_unpackRTCP*x){
@@ -351,18 +351,21 @@ static void unpackRTCP_sdes(t_unpackRTCP*x){
   rtcp_t*rtcp=&x->x_rtcpheader;
 
   SETUINT32(ap, rtcp->r.sdes.src);
-  outlet_anything(out, gensym("SRC"), 2, ap);
+  outlet_anything(out, SELECTOR_RTCP_SDES_SRC, 2, ap);
   unpackRTCP_sdesitems(out, rtcp->r.sdes.item_count, rtcp->r.sdes.item);
 }
 static void unpackRTCP_bye(t_unpackRTCP*x){
-  t_atom ap[2];
+  t_atom ap[3];
   t_outlet*out=x->x_infoout;
   rtcp_t*rtcp=&x->x_rtcpheader;
   u_int32*srcs=rtcp->r.bye.src;
   u_int32 src;
+  u_int32 count=0;
+#warning FIXME handle empty SRC list
   while((src=(*srcs++))) {
-    SETUINT32(ap, src);
-    outlet_anything(out, gensym("SRC"), 2, ap);
+    SETFLOAT (ap+0, count++);
+    SETUINT32(ap+1, src);
+    outlet_anything(out, SELECTOR_RTCP_BYE_SRC, 3, ap);
   }
 }
 
@@ -374,7 +377,7 @@ static void unpackRTCP_rtcp(t_unpackRTCP*x){
 
   unsigned int type =  rtcp->pt;
   SETFLOAT(ap+0, version);
-  outlet_anything(out, gensym("version"), 1, ap);
+  outlet_anything(out, SELECTOR_RTCP_HEADER_VERSION, 1, ap);
   if(version!=2) {
     static int printerror=1;
     if(printerror)
@@ -383,20 +386,20 @@ static void unpackRTCP_rtcp(t_unpackRTCP*x){
   }
 
   SETFLOAT(ap+0, rtcp->p);
-  outlet_anything(out, gensym("padding"), 1, ap);
+  outlet_anything(out, SELECTOR_RTCP_HEADER_P, 1, ap);
   switch(type) {
-  case RTCP_SR  : SETSYMBOL(ap+0, gensym("SR")); break;
-  case RTCP_RR  : SETSYMBOL(ap+0, gensym("RR")); break;
-  case RTCP_SDES: SETSYMBOL(ap+0, gensym("SDES")); break;
-  case RTCP_BYE : SETSYMBOL(ap+0, gensym("BYE")); break;
-  case RTCP_APP : SETSYMBOL(ap+0, gensym("APP")); break;
+  case RTCP_SR  : SETSYMBOL(ap+0, SELECTOR_RTCP_SR); break;
+  case RTCP_RR  : SETSYMBOL(ap+0, SELECTOR_RTCP_RR); break;
+  case RTCP_SDES: SETSYMBOL(ap+0, SELECTOR_RTCP_SDES); break;
+  case RTCP_BYE : SETSYMBOL(ap+0, SELECTOR_RTCP_BYE); break;
+  case RTCP_APP : SETSYMBOL(ap+0, SELECTOR_RTCP_APP); break;
   default:
     SETFLOAT(ap+0, type);
   }
-  outlet_anything(out, gensym("type"), 1, ap);
+  outlet_anything(out, SELECTOR_RTCP_HEADER_TYPE, 1, ap);
 
   SETFLOAT(ap+0, rtcp->count);
-  outlet_anything(out, gensym("count"), 1, ap);
+  outlet_anything(out, SELECTOR_RTCP_HEADER_COUNT, 1, ap);
 
   switch(type) {
   case(RTCP_SR):
