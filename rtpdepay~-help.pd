@@ -1,0 +1,34 @@
+#N canvas 407 322 490 376 10;
+#X text 88 56 common implementation for depayloaders;
+#X obj 90 119 rtpdepay~ L16 4 32768 foo-;
+#X obj 91 161 +~;
+#X text 94 142 dummy outlet;
+#X msg 90 95;
+#X text 122 97 RTP-packet;
+#X text 32 201 arguments: <encoding> <channels> <buffersize> <r~prefix>
+;
+#X text 40 236 [rtpdepay~] depends on a decoder for the given <encoding>
+\, e.g. [L16decode];
+#X obj 81 309 r~ foo-0;
+#X obj 81 331 env~;
+#X floatatom 81 353 5 0 0 0 - - -;
+#X obj 151 331 env~;
+#X floatatom 151 353 5 0 0 0 - - -;
+#X obj 221 331 env~;
+#X floatatom 221 353 5 0 0 0 - - -;
+#X obj 291 331 env~;
+#X floatatom 291 353 5 0 0 0 - - -;
+#X obj 151 309 r~ foo-1;
+#X obj 221 309 r~ foo-2;
+#X obj 291 309 r~ foo-3;
+#X text 44 285 <channels> signals are [send~] to <r~prefix><idx>;
+#X connect 1 0 2 0;
+#X connect 4 0 1 0;
+#X connect 8 0 9 0;
+#X connect 9 0 10 0;
+#X connect 11 0 12 0;
+#X connect 13 0 14 0;
+#X connect 15 0 16 0;
+#X connect 17 0 11 0;
+#X connect 18 0 13 0;
+#X connect 19 0 15 0;
