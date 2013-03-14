@@ -189,7 +189,7 @@ static void packRTCP_sr(t_packRTCP *x, t_symbol*s, int argc, t_atom*argv) {
         pd_error(x, "usage: %s <#> <type> <VALhi> <VALlo>...", s->s_name);
         return;
       }
-      if(iemrtp_rtcp_ensureSR(&x->x_rtcp, index) && setRR(x->x_rtcp.r.sr.rr+index, argc-1, argv+1)) {
+      if(iemrtp_rtcp_ensureSR(&x->x_rtcp, index+1) && setRR(x->x_rtcp.r.sr.rr+index, argc-1, argv+1)) {
       } else {
         pd_error(x, "unable to set %s/RR @ %d", s->s_name, index);
         return;
@@ -216,7 +216,7 @@ static void packRTCP_rr(t_packRTCP *x, t_symbol*s, int argc, t_atom*argv) {
         return;
       }
       index=atom_getint(argv);
-      if(iemrtp_rtcp_ensureRR(&x->x_rtcp, index) && setRR(x->x_rtcp.r.rr.rr+index, argc-1, argv+1)) {
+      if(iemrtp_rtcp_ensureRR(&x->x_rtcp, index+1) && setRR(x->x_rtcp.r.rr.rr+index, argc-1, argv+1)) {
       } else {
         pd_error(x, "unable to set %s/RR @ %d", s->s_name, index);
         return;
