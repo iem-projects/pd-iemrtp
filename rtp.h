@@ -89,3 +89,43 @@ u_int32 iemrtp_rtpheader2atoms(t_rtpheader*rtpheader, t_atom*argv);
  *         on error, 0 or a negative number (minimum expected packet size ) is returned
  */
 int iemrtp_atoms2rtpheader(int argc, t_atom*argv, t_rtpheader*rtpheader);
+
+
+
+typedef void (*t_rtppay_perform)(u_int32 vecsize, u_int32 channels, t_sample**samples, u_int8*buffer);
+
+typedef struct _rtppay
+{
+	t_object x_obj;
+  t_sample**x_in;
+  u_int8 x_running;
+  u_int8 x_banged;
+
+  u_int32 x_channels;  // number of channels
+  u_int32 x_vecsize;   // Pd's blocksize
+  u_int32 x_mtu;       // MTU of the socket
+
+  t_rtpheader  x_rtpheader; // the RTP-header
+  u_int32 x_rtpheadersize; // the size of the RTP-header
+
+  /* converting */
+  t_rtppay_perform x_perform;
+
+  /* buffer to store the bytes into */
+  u_int8*x_buffer;
+  u_int32 x_buffersize;
+  u_int8  x_bytespersample;
+
+  /* buffer for outputting bytes as list */
+  t_atom*x_atombuffer;
+  u_int32 x_atombuffersize;
+  t_clock*x_clock;
+  t_outlet*x_outlet;
+
+  /* packetizing */
+  u_int32 x_payload;
+} t_rtppay;
+
+void *iemrtp_rtppay_new(t_rtppay*x, int chan, int bytespersample, t_rtppay_perform perform);
+void iemrtp_rtppay_free(t_rtppay*x);
+void iemrtp_rtppay_classnew(t_class*rtppay_class);
