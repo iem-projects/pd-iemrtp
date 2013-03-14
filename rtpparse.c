@@ -69,7 +69,7 @@ static void rtpparse_bang(t_rtpparse*x){
 }
 
 static void rtpparse_list(t_rtpparse*x, t_symbol*s, int argc, t_atom*argv){
-  int result=atoms2header(argc, argv, &x->x_rtpheader);
+  int result=iemrtp_atoms2rtpheader(argc, argv, &x->x_rtpheader);
   if(result>0) {
     rtpparse_bang(x);
     outlet_list(x->x_dataout, s, argc-result, argv+result);
@@ -92,7 +92,7 @@ static void *rtpparse_new(void)
 
 
 static void rtpparse_free(t_rtpparse *x) {
-  rtpheader_freemembers(&x->x_rtpheader);
+  iemrtp_rtpheader_freemembers(&x->x_rtpheader);
 
   outlet_free(x->x_dataout);
   outlet_free(x->x_infoout);

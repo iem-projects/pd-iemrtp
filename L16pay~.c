@@ -120,7 +120,7 @@ static void L16pay_tick(t_L16pay *x) {      /* callback function for the clock *
     t_atom*ap;
     u_int32 j;
 
-    headersize=header2atoms(&x->x_rtpheader, x->x_atombuffer);
+    headersize=iemrtp_rtpheader2atoms(&x->x_rtpheader, x->x_atombuffer);
     x->x_rtpheadersize=headersize;
 
     /* 1st guess at headersize */
@@ -225,10 +225,10 @@ static void L16pay_cc(t_L16pay *x, t_symbol*s, int argc, t_atom*argv) {
   if(argc) {
     int cc = atom_getint(argv);
     if(!cc) {
-      rtpheader_freemembers(&x->x_rtpheader);
+      iemrtp_rtpheader_freemembers(&x->x_rtpheader);
       return;
     }
-    if(!rtpheader_ensureCSRC(&x->x_rtpheader, cc)) {
+    if(!iemrtp_rtpheader_ensureCSRC(&x->x_rtpheader, cc)) {
       pd_error(x, "unable to resize CSRC to %d (must be <%d)!", cc, 0x0F);
     }
   }  else     post("cc: %d", x->x_rtpheader.cc);
@@ -270,7 +270,7 @@ static void L16pay_CSRC(t_L16pay *x, t_symbol*s, int argc, t_atom*argv) {
     case 2: case 3: do {
         int index=atom_getint(argv);
         u_int32 id = GETUINT32(argc-1, argv+1);
-        if(!rtpheader_ensureCSRC(&x->x_rtpheader, index+1)) {
+        if(!iemrtp_rtpheader_ensureCSRC(&x->x_rtpheader, index+1)) {
           pd_error(x, "couldn't set CSRC-id to %d (must be <%d)", index, 0x0F);
           return;
         }
