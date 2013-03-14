@@ -141,7 +141,6 @@ static void rtppay_preparePacket(t_rtppay*x) {
 static t_int *rtppay_perform(t_int *w)
 {
 	t_rtppay* x = (t_rtppay*)(w[1]);
-  u_int32 vecsize = x->x_vecsize;
 
   if(!x->x_running && !x->x_banged)return(w+2);
   x->x_banged=0;
