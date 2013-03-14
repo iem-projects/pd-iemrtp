@@ -394,6 +394,44 @@ int iemrtp_rtcp2atoms(const rtcp_t*x, int argc, t_atom*ap) {
   return reqbytes;
 }
 
+void iemrtp_rtcp_changetype(rtcp_t*rtcp, const rtcp_type_t pt) {
+  if(pt==rtcp->common.pt)return;
+  else {
+    unsigned int version=rtcp->common.version;
+    unsigned int p=rtcp->common.p;
+    iemrtp_rtcp_freemembers(rtcp);
+    memset(rtcp, 0, sizeof(rtcp_t));
+
+    rtcp->common.version=version;
+    rtcp->common.p=p;
+    rtcp->common.pt     =pt;
+  }
+}
+/* make sure that at least <size> elements can fit into the rtcp.r.rr struct
+ * returns the size of the buffer after a possible alloc
+ */
+#define RTCP_ENSURE(fun, field, typ, minsize, maxsize)                \
+  int iemrtp_rtcp_ensure##fun(rtcp_t*rtcp, int size) {                \
+    typ*tmp;                                                          \
+    u_int32 i;                                                        \
+    if(size<minsize) return 0;                                        \
+    if(maxsize>minsize && size>maxsize) return 0;                     \
+    if(size<=(int)rtcp->r.field##_count)return rtcp->r.field##_count; \
+    tmp=calloc(size, sizeof(typ));                                    \
+    if(!tmp)return 0;                                                 \
+    for(i=0; i<rtcp->r.field##_count; i++)                            \
+      tmp[i]=rtcp->r.field[i];                                        \
+    iemrtp_rtcp_freemembers(rtcp);                                    \
+    rtcp->r.field=tmp;                                                \
+    rtcp->r.field##_count=size;                                       \
+    return rtcp->r.field##_count;                                     \
+  }
+RTCP_ENSURE(RR,   rr.rr,     rtcp_rr_t,        0, 0);
+RTCP_ENSURE(SR,   sr.rr,     rtcp_rr_t,        0, 0);
+RTCP_ENSURE(SDES, sdes.item, rtcp_sdes_item_t, 0, 0);
+RTCP_ENSURE(BYE,  bye.src,   u_int32,          0, 0);
+
+
 
 /* ======================================================== */
 

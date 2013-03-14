@@ -205,3 +205,23 @@ int iemrtp_atoms2rtcp(int argc, t_atom*argv, rtcp_t*x);
  *         on error, 0 or a negative number (minimum expected list size ) is returned
  */
 int iemrtp_rtcp2atoms(const rtcp_t*x, int argc, t_atom*argv);
+
+
+/* change the type of the RTCP packet,
+ * freeing ressources no longer needed
+ * and initializing to a minimal set
+ */
+void iemrtp_rtcp_changetype(rtcp_t*rtcp, const rtcp_type_t pt);
+
+/* make sure that at least <size> elements can fit into the rtcp.r.rr struct
+ */
+int iemrtp_rtcp_ensureRR(rtcp_t*rtcp, int size);
+/* make sure that at least <size> elements can fit into the rtcp.r.sr struct
+ */
+int iemrtp_rtcp_ensureSR(rtcp_t*rtcp, int size);
+/* make sure that at least <size> elements can fit into the rtcp.r.sdes struct
+ */
+int iemrtp_rtcp_ensureSDES(rtcp_t*rtcp, int size);
+/* make sure that at least <size> elements can fit into the rtcp.r.bye struct
+ */
+int iemrtp_rtcp_ensureBYE(rtcp_t*rtcp, int size);
