@@ -344,7 +344,7 @@ int iemrtp_rtcp2atoms(const rtcp_t*x, int argc, t_atom*ap) {
   case(RTCP_APP ):
     return 0;
   }
-  padding =  4 - (reqbytes & 0x3); // packetsize must be 4byte aligned
+  padding = (reqbytes%4)?(4 - (reqbytes & 0x3)):0; // packetsize must be 4byte aligned
   reqbytes += padding;
 
   if(argc<reqbytes)return -reqbytes; // header takes at least 4 bytes
