@@ -21,7 +21,7 @@
 static t_class *L16pay_class;
 typedef struct _L16pay
 {
-	t_rtppay x_obj;
+  t_rtppay x_obj;
 } t_L16pay;
 
 
@@ -48,7 +48,7 @@ static void L16_perform(u_int32 vecsize, u_int32 channels, t_sample**ins, u_int8
 static void *L16pay_new(t_floatarg fchan)
 {
   int ichan = fchan;
-	t_L16pay *x = (t_L16pay *)pd_new(L16pay_class);
+  t_L16pay *x = (t_L16pay *)pd_new(L16pay_class);
   return iemrtp_rtppay_new(&x->x_obj, ichan, 2, L16_perform);
 }
 
@@ -60,7 +60,7 @@ static void L16pay_free(t_L16pay *x) {
 
 void L16pay_tilde_setup(void)
 {
-	L16pay_class = class_new(gensym("L16pay~"), (t_newmethod)L16pay_new, (t_method)L16pay_free,
-		sizeof(t_L16pay), 0, A_DEFFLOAT,0);
+  L16pay_class = class_new(gensym("L16pay~"), (t_newmethod)L16pay_new, (t_method)L16pay_free,
+                           sizeof(t_L16pay), 0, A_DEFFLOAT,0);
   iemrtp_rtppay_classnew(L16pay_class);
 }

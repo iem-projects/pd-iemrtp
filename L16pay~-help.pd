@@ -1,17 +1,16 @@
-#N canvas 1345 329 800 438 10;
-#X obj 136 242 L16pay~ 2;
+#N canvas 122 165 800 425 10;
+#X obj 116 252 L16pay~ 2;
 #X msg 575 49 \; pd dsp \$1;
 #X obj 575 27 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
 1;
-#X msg 282 115 mtu 1500;
-#X obj 136 94 sig~ 1;
-#X obj 195 94 osc~ 440;
-#X obj 227 225 t a;
-#X text 114 17 [L15pay~] RTP-payloader for audio/L16 profile (16bit
+#X obj 116 104 sig~ 1;
+#X obj 175 104 osc~ 440;
+#X obj 207 235 t a;
+#X text 114 17 [L16pay~] RTP-payloader for audio/L16 profile (16bit
 signed);
 #X text 118 44 args: #channels;
-#X obj 256 225 r \$0-ctl;
-#N canvas 900 603 645 357 getters 1;
+#X obj 236 235 r \$0-ctl;
+#N canvas 449 171 645 357 getters 0;
 #X msg 79 61 version;
 #X msg 79 83 padding;
 #X msg 79 105 extension;
@@ -40,8 +39,8 @@ signed);
 #X connect 8 0 10 0;
 #X connect 9 0 10 0;
 #X connect 10 0 11 0;
-#X restore 357 194 pd getters;
-#N canvas 62 550 645 357 setters 1;
+#X restore 487 243 pd getters;
+#N canvas 275 141 645 357 setters 0;
 #X obj 79 289 t a;
 #X obj 79 311 s \$0-ctl;
 #X text 99 15 setting info in the next RTP packet header;
@@ -69,6 +68,9 @@ for each packet);
 #X text 224 149 <pt>: set payload type (96);
 #X msg 79 129 marker 1;
 #X text 221 132 <1|0>: set marker-bit;
+#X text 224 106 set extension bit (0);
+#X text 227 85 set padding bit (0);
+#X text 229 61 set version (only version=2 is supported);
 #X connect 0 0 1 0;
 #X connect 4 0 0 0;
 #X connect 5 0 0 0;
@@ -80,10 +82,41 @@ for each packet);
 #X connect 14 0 0 0;
 #X connect 17 0 0 0;
 #X connect 19 0 0 0;
-#X restore 357 173 pd setters;
+#X restore 487 223 pd setters;
+#X msg 282 134 bang;
+#X msg 281 181 auto \$1;
+#X obj 281 162 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
+1;
+#X text 339 171 start/stop outputting DSP-blocks as RTP-packets;
+#X text 320 136 output a single DSP-block as RTP-packet (the *next*
+DSP-block);
+#N canvas 4 49 867 331 packet 0;
+#X msg 79 54 mtu 1500;
+#X obj 79 76 s \$0-ctl;
+#X text 149 52 set the maximum packet size.;
+#X text 89 131 the payloader will try to put the entire sample block
+(num.channels*blocksize*samplewidth(=2) bytes) into a single packet.
+if this packet is larger than the specified MTU size \, it will output
+multiple packets instead.;
+#X text 88 203 in an ordinary ethernet network \, the maximum packet
+size is limited to 1500 bytes (the default MTU size).;
+#X connect 0 0 1 0;
+#X restore 487 272 pd packet size;
+#X obj 116 274 spigot;
+#X obj 116 296 print RTP;
+#X obj 169 275 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
+1;
+#X text 187 276 <-- might block Pd-GUI...;
+#X text 115 366 for interpreting the RTP-packet \, see;
+#X obj 376 367 rtpparse;
+#X connect 0 0 17 0;
 #X connect 2 0 1 0;
-#X connect 3 0 6 0;
-#X connect 4 0 0 0;
-#X connect 5 0 0 1;
-#X connect 6 0 0 0;
-#X connect 9 0 6 0;
+#X connect 3 0 0 0;
+#X connect 4 0 0 1;
+#X connect 5 0 0 0;
+#X connect 8 0 5 0;
+#X connect 11 0 5 0;
+#X connect 12 0 0 0;
+#X connect 13 0 12 0;
+#X connect 17 0 18 0;
+#X connect 19 0 17 1;

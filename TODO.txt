@@ -11,9 +11,4 @@ rtcpparser:
 rtcpassembler:
         TODO
 
-RTP
----
-L16pay~:
-        allow to set timestamp
-
 
