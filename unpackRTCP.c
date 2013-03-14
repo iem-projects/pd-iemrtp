@@ -39,31 +39,31 @@ static void unpackRTCP_rrlist(t_outlet*out, t_symbol*s, u_int32 argc, rtcp_rr_t*
 
     SETSYMBOL(ap+1, SELECTOR_RTCP_RR_SSRC);
     SETUINT32(ap+2, rr->ssrc);
-    outlet_anything(out, s, 2, ap);
+    outlet_anything(out, s, 4, ap);
 
     SETSYMBOL(ap+1, SELECTOR_RTCP_RR_FRACTION);
     SETFLOAT(ap+2, rr->fraction);
-    outlet_anything(out, s, 2+1, ap);
+    outlet_anything(out, s, 3, ap);
 
     SETSYMBOL(ap+1, SELECTOR_RTCP_RR_LOST);
     SETFLOAT(ap+2, rr->lost);
-    outlet_anything(out, s, 2+1, ap);
+    outlet_anything(out, s, 3, ap);
 
     SETSYMBOL(ap+1, SELECTOR_RTCP_RR_LAST_SEQ);
     SETUINT32(ap+2, rr->last_seq);
-    outlet_anything(out, s, 2+1, ap);
+    outlet_anything(out, s, 4, ap);
 
     SETSYMBOL(ap+1, SELECTOR_RTCP_RR_JITTER);
     SETUINT32(ap+2, rr->jitter);
-    outlet_anything(out, s, 2+1, ap);
+    outlet_anything(out, s, 4, ap);
 
     SETSYMBOL(ap+1, SELECTOR_RTCP_RR_LSR);
     SETUINT32(ap+2, rr->lsr);
-    outlet_anything(out, s, 2+1, ap);
+    outlet_anything(out, s, 4, ap);
 
     SETSYMBOL(ap+1, SELECTOR_RTCP_RR_DLSR);
     SETUINT32(ap+2, rr->dlsr);
-    outlet_anything(out, s, 2+1, ap);
+    outlet_anything(out, s, 4, ap);
   }
 }
 static void unpackRTCP_sdesitems(t_outlet*out, u_int32 argc, rtcp_sdes_item_t*argv){
