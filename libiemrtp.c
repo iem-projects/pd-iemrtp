@@ -583,21 +583,21 @@ static void rtppay_version(t_rtppay *x, t_symbol*s, int argc, t_atom*argv) {
     int version = atom_getint(argv);
     if(version != 2) pd_error(x, "currently only version '2' is supported!");
     x->x_rtpheader.version = 2;
-  }  else     post("version: %d", x->x_rtpheader.version);
+  }  else     post("%s: %d", s->s_name, x->x_rtpheader.version);
 }
 static void rtppay_p(t_rtppay *x, t_symbol*s, int argc, t_atom*argv) {
   if(argc) {
     int p = atom_getint(argv);
     if(p != 0) pd_error(x, "currently only padding '0' is supported!");
     x->x_rtpheader.p = 0;
-  }  else     post("p: %d", x->x_rtpheader.p);
+  }  else     post("%s: %d", s->s_name, x->x_rtpheader.p);
 }
 static void rtppay_x(t_rtppay *x, t_symbol*s, int argc, t_atom*argv) {
   if(argc) {
     int ext = atom_getint(argv);
     if(ext != 0) pd_error(x, "currently only extension '0' is supported!");
     x->x_rtpheader.x = 0;
-  }  else     post("x: %d", x->x_rtpheader.x);
+  }  else     post("%s: %d", s->s_name, x->x_rtpheader.x);
 }
 static void rtppay_cc(t_rtppay *x, t_symbol*s, int argc, t_atom*argv) {
   if(argc) {
@@ -609,37 +609,37 @@ static void rtppay_cc(t_rtppay *x, t_symbol*s, int argc, t_atom*argv) {
     if(!iemrtp_rtpheader_ensureCSRC(&x->x_rtpheader, cc)) {
       pd_error(x, "unable to resize CSRC to %d (must be <%d)!", cc, 0x0F);
     }
-  }  else     post("cc: %d", x->x_rtpheader.cc);
+  }  else     post("%s: %d", s->s_name, x->x_rtpheader.cc);
 }
 static void rtppay_m(t_rtppay *x, t_symbol*s, int argc, t_atom*argv) {
   if(argc) {
     int m = atom_getint(argv);
     x->x_rtpheader.m = (m!=0);
-  }  else     post("marker: %d", x->x_rtpheader.m);
+  }  else     post("%s: %d", s->s_name, x->x_rtpheader.m);
 }
 static void rtppay_pt(t_rtppay *x, t_symbol*s, int argc, t_atom*argv) {
   if(argc) {
     int pt = atom_getint(argv);
     x->x_rtpheader.pt = pt;
-  }  else     post("pt: %d", x->x_rtpheader.pt);
+  }  else     post("%s: %d", s->s_name, x->x_rtpheader.pt);
 }
 static void rtppay_seq(t_rtppay *x, t_symbol*s, int argc, t_atom*argv) {
   if(argc) {
     int seq = atom_getint(argv);
     x->x_rtpheader.seq = seq;
-  }  else     post("seq: %d", x->x_rtpheader.seq);
+  }  else     post("%s: %d", s->s_name, x->x_rtpheader.seq);
 }
 static void rtppay_ts(t_rtppay *x, t_symbol*s, int argc, t_atom*argv) {
   if(argc)
     x->x_rtpheader.ts = GETUINT32(argc, argv);
   else
-    post("timestamp: %08x",   x->x_rtpheader.ts);
+    post("%s: %08x", s->s_name, x->x_rtpheader.ts);
 }
 static void rtppay_SSRC(t_rtppay *x, t_symbol*s, int argc, t_atom*argv) {
   if(argc)
     x->x_rtpheader.ssrc = GETUINT32(argc, argv);
   else
-    post("SSRC: %08x",   x->x_rtpheader.ssrc);
+    post("%s: %08x", s->s_name, x->x_rtpheader.ssrc);
 }
 static void rtppay_CSRC(t_rtppay *x, t_symbol*s, int argc, t_atom*argv) {
   unsigned int i;
@@ -661,7 +661,7 @@ static void rtppay_CSRC(t_rtppay *x, t_symbol*s, int argc, t_atom*argv) {
     }
   } else {
     for(i=0; i<x->x_rtpheader.cc; i++) {
-      post("CSRC[%d]: %08x",   i, x->x_rtpheader.csrc[i]);
+      post("%s[%d]: %08x", s->s_name, i, x->x_rtpheader.csrc[i]);
     }
   }
 }
