@@ -195,3 +195,13 @@ void iemrtp_rtcp_freemembers(rtcp_t*x);
  *         on error, 0 or a negative number (minimum expected packet size ) is returned
  */
 int iemrtp_atoms2rtcp(int argc, t_atom*argv, rtcp_t*x);
+
+/**
+ * @brief synthesize a byte-package (atom list) from an RTCP struct.
+ * @param RTCP struct to an initialized RTCP struct
+ * @param argc total length of the list
+ * @param argv array of bytes (as atoms)
+ * @return the number of elements consumed within the atom-list
+ *         on error, 0 or a negative number (minimum expected list size ) is returned
+ */
+int iemrtp_rtcp2atoms(const rtcp_t*x, int argc, t_atom*argv);

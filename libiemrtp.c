@@ -290,7 +290,98 @@ int iemrtp_atoms2rtcp(int argc, t_atom*argv, rtcp_t*x) {
 
   return retval;
 }
+STATIC_INLINE int RTCPatombytes_fromRR(rtcp_rr_t*rr, t_atom*ap) {
+  ap+=atombytes_setU32(rr->ssrc    , ap);
+  ap++->a_w.w_float   =rr->fraction;
+  ap+=atombytes_setU24(rr->lost    , ap);
+  ap+=atombytes_setU32(rr->last_seq, ap);
+  ap+=atombytes_setU32(rr->jitter  , ap);
+  ap+=atombytes_setU32(rr->lsr     , ap);
+  ap+=atombytes_setU32(rr->dlsr    , ap);
+  return 24;
+}
+STATIC_INLINE int RTCPatombytes_fromSDES(rtcp_sdes_item_t*item, t_atom*ap) {
+  u_int8 i;
+  ap++->a_w.w_float   =item->type;
+  ap++->a_w.w_float   =item->length;
+  for(i=0; i<item->length; i++)
+    ap++->a_w.w_float   =item->data[i];
+  return 2+item->length;
+}
 
+int iemrtp_rtcp2atoms(const rtcp_t*x, int argc, t_atom*ap) {
+  int reqbytes=0;
+  u_int8 b;
+  u_int32 i;
+  if(!x)return 0;
+
+  /*
+    header: 4 bytes
+    SR: 6*4 + rr_count*(6*4) = 24*(rr_count+1)
+    RR: 4 + rr_count*(6*4)   = 4*(1+6*rr_count)
+    SDES: 4 + item_count*(2+length[i])
+    BYE: 4*src_count
+    APP: ?
+  */
+  reqbytes=4;
+  switch(x->common.pt) {
+  case(RTCP_SR  ):
+    reqbytes+=6*4*(x->r.sr.rr_count +1);
+    break;
+  case(RTCP_RR  ):
+    reqbytes+=6*4*(x->r.rr.rr_count) + 4;
+    break;
+  case(RTCP_SDES):
+    reqbytes+=4;
+    for(i=0; i<x->r.sdes.item_count; i++)
+      reqbytes+=2+x->r.sdes.item[i].length;
+    break;
+  case(RTCP_BYE ):
+    reqbytes+=4*x->r.bye.src_count;
+    break;
+  default:
+  case(RTCP_APP ):
+    return 0;
+  }
+  post("reqbytes=%d", reqbytes);
+  if(argc<reqbytes)return -reqbytes; // header takes at least 4 bytes
+
+  /* write header */
+  b=(x->common.version << 6) | (x->common.p << 5) | (x->common.count);
+  ap++->a_w.w_float=b;
+  ap++->a_w.w_float=x->common.pt;
+  ap+=atombytes_setU16(x->common.length, ap);
+
+  switch(x->common.pt) {
+  case(RTCP_SR  ):
+    ap+=atombytes_setU32(x->r.sr.ssrc    , ap);
+    ap+=atombytes_setU32(x->r.sr.ntp_sec , ap);
+    ap+=atombytes_setU32(x->r.sr.ntp_frac, ap);
+    ap+=atombytes_setU32(x->r.sr.rtp_ts  , ap);
+    ap+=atombytes_setU32(x->r.sr.psent   , ap);
+    ap+=atombytes_setU32(x->r.sr.osent   , ap);
+    for(i=0; i<x->r.sr.rr_count; i++)
+      ap+=RTCPatombytes_fromRR(x->r.sr.rr+i      , ap);
+    break;
+  case(RTCP_RR  ):
+    ap+=atombytes_setU32(x->r.rr.ssrc            , ap);
+    for(i=0; i<x->r.rr.rr_count; i++)
+      ap+=RTCPatombytes_fromRR(x->r.rr.rr+i      , ap);
+    break;
+  case(RTCP_SDES):
+    ap+=atombytes_setU32(x->r.sdes.src           , ap);
+    for(i=0; i<x->r.sdes.item_count; i++)
+      ap+=RTCPatombytes_fromSDES(x->r.sdes.item+i, ap);
+    break;
+  case(RTCP_BYE ):
+    for(i=0; i<x->r.bye.src_count; i++)
+      ap+=atombytes_setU32(x->r.bye.src[i]       , ap);
+    break;
+  default:
+    return 0;
+  }
+  return reqbytes;
+}
 
 
 /* ======================================================== */
