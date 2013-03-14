@@ -6,7 +6,7 @@ LIBRARY_NAME = iemrtp
 # add your .c source files, one object per file, to the SOURCES
 # variable, help files will be included automatically, and for GUI
 # objects, the matching .tcl file too
-SOURCES = rtpparse.c \
+SOURCES = unpackRTP.c \
 	unpackRTCP.c \
 	rtpL16pay~.c L16decode.c
 

@@ -1,5 +1,5 @@
 /*
- * rtpparse: parse RTP packages to get some info
+ * unpackRTP: parse RTP packages to get some info
  *
  * (c) 2013 IOhannes m zmölnig, institute of electronic music and acoustics (iem)
  *
@@ -18,9 +18,9 @@
  */
 #include "iemrtp.h"
 #include <stdlib.h>
-static t_class *rtpparse_class;
+static t_class *unpackRTP_class;
 
-typedef struct _rtpparse
+typedef struct _unpackRTP
 {
 	t_object x_obj;
   t_outlet*x_dataout;
@@ -28,9 +28,9 @@ typedef struct _rtpparse
   t_outlet*x_rejectout;
 
   t_rtpheader x_rtpheader;
-} t_rtpparse;
+} t_unpackRTP;
 
-static void rtpparse_bang(t_rtpparse*x){
+static void unpackRTP_bang(t_unpackRTP*x){
   t_atom ap[4];
   t_rtpheader*rtp=&x->x_rtpheader;
   unsigned int version = rtp->version;
@@ -68,20 +68,20 @@ static void rtpparse_bang(t_rtpparse*x){
   }
 }
 
-static void rtpparse_list(t_rtpparse*x, t_symbol*s, int argc, t_atom*argv){
+static void unpackRTP_list(t_unpackRTP*x, t_symbol*s, int argc, t_atom*argv){
   int result=iemrtp_atoms2rtpheader(argc, argv, &x->x_rtpheader);
   if(result>0) {
-    rtpparse_bang(x);
+    unpackRTP_bang(x);
     outlet_list(x->x_dataout, s, argc-result, argv+result);
   } else {
     outlet_list(x->x_rejectout, s, argc, argv);
   }
     }
 
-/* create rtpparse with args <channels> <skip> */
-static void *rtpparse_new(void)
+/* create unpackRTP with args <channels> <skip> */
+static void *unpackRTP_new(void)
 {
-	t_rtpparse *x = (t_rtpparse *)pd_new(rtpparse_class);
+	t_unpackRTP *x = (t_unpackRTP *)pd_new(unpackRTP_class);
 
 	x->x_dataout=outlet_new(&x->x_obj, &s_list);
 	x->x_infoout=outlet_new(&x->x_obj, 0);
@@ -91,7 +91,7 @@ static void *rtpparse_new(void)
 
 
 
-static void rtpparse_free(t_rtpparse *x) {
+static void unpackRTP_free(t_unpackRTP *x) {
   iemrtp_rtpheader_freemembers(&x->x_rtpheader);
 
   outlet_free(x->x_dataout);
@@ -99,10 +99,10 @@ static void rtpparse_free(t_rtpparse *x) {
   outlet_free(x->x_rejectout);
 }
 
-void rtpparse_setup(void)
+void unpackRTP_setup(void)
 {
-	rtpparse_class = class_new(gensym("rtpparse"), (t_newmethod)rtpparse_new, (t_method)rtpparse_free,
-		sizeof(t_rtpparse), 0,0);
+	unpackRTP_class = class_new(gensym("unpackRTP"), (t_newmethod)unpackRTP_new, (t_method)unpackRTP_free,
+		sizeof(t_unpackRTP), 0,0);
 
-	class_addlist(rtpparse_class, (t_method)rtpparse_list);
+	class_addlist(unpackRTP_class, (t_method)unpackRTP_list);
 }
