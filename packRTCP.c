@@ -264,8 +264,10 @@ static void packRTCP_bye(t_packRTCP *x, t_symbol*s, int argc, t_atom*argv) {
   if(argc==3) { // <index> <hi> <lo>
     u_int32 index = atom_getint(argv+0);
     u_int32    id = GETUINT32(argc-1, argv+1);
-    if(iemrtp_rtcp_ensureBYE(&x->x_rtcp, index))
+    if(iemrtp_rtcp_ensureBYE(&x->x_rtcp, index+1))
       x->x_rtcp.r.bye.src[index]=id;
+    else
+      pd_error(x, "unable to write BYE to index %d", index);
   } else if (argc) {
     pd_error(x, "syntax: %s <index> <SRChi> <SRClo>", s->s_name);
   }
