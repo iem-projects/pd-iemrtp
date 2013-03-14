@@ -3,7 +3,7 @@
 #X obj 63 117 outlet~ dummy;
 #X obj 193 44 inlet timestampSync;
 #X obj 193 114 outlet timestampNow;
-#X obj 63 74 depay~ L16 \$1 \$2 \$3;
+#X obj 63 74 rtpdepay~ L16 \$1 \$2 \$3;
 #X connect 0 0 4 0;
 #X connect 2 0 4 1;
 #X connect 4 0 1 0;
