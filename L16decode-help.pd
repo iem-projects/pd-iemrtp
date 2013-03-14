@@ -1,8 +1,27 @@
-#N canvas 227 225 450 300 10;
-#X obj 115 103 L16decode;
-#X obj 115 125 print;
-#X msg 113 70 255 255 \$1 0;
-#X floatatom 119 41 5 0 0 0 - - -;
-#X connect 0 0 1 0;
+#N canvas 228 226 666 295 10;
+#X obj 103 160 L16decode 2;
+#X text 198 161 arg: number of channels;
+#X msg 189 134 channels 2;
+#X obj 103 212 route 0 1;
+#X text 180 212 remove channel prefix;
+#X obj 103 234 unpack;
+#X floatatom 103 256 5 0 0 0 - - -;
+#X floatatom 142 256 5 0 0 0 - - -;
+#X obj 203 234 unpack;
+#X floatatom 203 256 5 0 0 0 - - -;
+#X floatatom 242 256 5 0 0 0 - - -;
+#X msg 103 89 1 0 127 0 0 0 128 0;
+#X text 255 89 2 channels \, interleaved samples \, each sample is
+2 bytes;
+#X text 69 17 [L16decode];
+#X text 36 40 convert multichannel audio-data (encoded in L16 (signed
+int 16bit \, big-endian) to lists of samples;
+#X connect 0 0 3 0;
 #X connect 2 0 0 0;
-#X connect 3 0 2 0;
+#X connect 3 0 5 0;
+#X connect 3 1 8 0;
+#X connect 5 0 6 0;
+#X connect 5 1 7 0;
+#X connect 8 0 9 0;
+#X connect 8 1 10 0;
+#X connect 11 0 0 0;
