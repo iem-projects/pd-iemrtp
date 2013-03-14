@@ -156,7 +156,7 @@ static u_int32 atoms2rtcp_sr(rtcp_common_sr_t*x, u_int32 argc, t_atom*argv) {
   const u_int32 framesize=24;
   u_int32 frames;
   frames=(argc/framesize);
-  if(frames*framesize != argc) {
+  if(frames*framesize > argc) {
     return -(frames*framesize);
   }
 
@@ -173,12 +173,12 @@ static u_int32 atoms2rtcp_sr(rtcp_common_sr_t*x, u_int32 argc, t_atom*argv) {
 
   atoms2rtcp_rrlist(x->rr_count, argv + 24, x->rr);
 
-  return argc;
+  return frames*framesize;
 }
 static u_int32 atoms2rtcp_rr(rtcp_common_rr_t*x, u_int32 argc, t_atom*argv) {
   const u_int32 framesize=24;
   u_int32 frames=(argc-4)/framesize;
-  if(frames*framesize+4 != argc) {
+  if(frames*framesize+4 > argc) {
     return -(frames*framesize+4);
   }
 
@@ -190,7 +190,7 @@ static u_int32 atoms2rtcp_rr(rtcp_common_rr_t*x, u_int32 argc, t_atom*argv) {
 
   atoms2rtcp_rrlist(x->rr_count, argv + 4, x->rr);
 
-  return argc;
+  return frames*framesize+4;
 }
 
 static u_int32 atoms2rtcp_sdes(rtcp_sdes_t*x, u_int32 argc, t_atom*argv) {
@@ -208,7 +208,9 @@ static u_int32 atoms2rtcp_sdes(rtcp_sdes_t*x, u_int32 argc, t_atom*argv) {
   for(ap=argv+4;
       datalengths<argc-4;
       frames++) {
-    ap++; datalengths++ ; // skip type
+    int type=atom_getint(ap++);
+    if(type==0)break; // stop type
+    datalengths++ ; // skip type
     len=atom_getint(ap++); datalengths++; //length of following string
     ap+=len; datalengths+=len;
   }
@@ -229,7 +231,7 @@ static u_int32 atoms2rtcp_sdes(rtcp_sdes_t*x, u_int32 argc, t_atom*argv) {
     }
     item->data[len]=0;
   }
-  return argc;
+  return argc; // datalengths+4
 }
 
 
@@ -286,7 +288,6 @@ int iemrtp_atoms2rtcp(int argc, t_atom*argv, rtcp_t*x) {
     //atoms2rtcp_app(&(x->r.app), length*4, argv+4);
     break;
   }
-
   return retval;
 }
 STATIC_INLINE int RTCPatombytes_fromRR(rtcp_rr_t*rr, t_atom*ap) {
