@@ -310,7 +310,7 @@ STATIC_INLINE int RTCPatombytes_fromSDES(rtcp_sdes_item_t*item, t_atom*ap) {
 }
 
 int iemrtp_rtcp2atoms(const rtcp_t*x, int argc, t_atom*ap) {
-  int reqbytes=0;
+  int padding=0, reqbytes=0;
   u_int8 b;
   u_int32 i;
   if(!x)return 0;
@@ -326,15 +326,16 @@ int iemrtp_rtcp2atoms(const rtcp_t*x, int argc, t_atom*ap) {
   reqbytes=4;
   switch(x->common.pt) {
   case(RTCP_SR  ):
-    reqbytes+=6*4*(x->r.sr.rr_count +1);
+    reqbytes+=4*6*(x->r.sr.rr_count +1);
     break;
   case(RTCP_RR  ):
-    reqbytes+=6*4*(x->r.rr.rr_count) + 4;
+    reqbytes+=4*6*(x->r.rr.rr_count) + 4;
     break;
   case(RTCP_SDES):
     reqbytes+=4;
     for(i=0; i<x->r.sdes.item_count; i++)
       reqbytes+=2+x->r.sdes.item[i].length;
+    reqbytes+=1; // there's an extra 0 byte at the end of SDES items
     break;
   case(RTCP_BYE ):
     reqbytes+=4*x->r.bye.src_count;
@@ -343,6 +344,9 @@ int iemrtp_rtcp2atoms(const rtcp_t*x, int argc, t_atom*ap) {
   case(RTCP_APP ):
     return 0;
   }
+  padding =  4 - (reqbytes & 0x3); // packetsize must be 4byte aligned
+  reqbytes += padding;
+
   post("reqbytes=%d", reqbytes);
   if(argc<reqbytes)return -reqbytes; // header takes at least 4 bytes
 
@@ -350,7 +354,10 @@ int iemrtp_rtcp2atoms(const rtcp_t*x, int argc, t_atom*ap) {
   b=(x->common.version << 6) | (x->common.p << 5) | (x->common.count);
   ap++->a_w.w_float=b;
   ap++->a_w.w_float=x->common.pt;
-  ap+=atombytes_setU16(x->common.length, ap);
+  if(x->common.length)
+    ap+=atombytes_setU16(x->common.length, ap);
+  else
+    ap+=atombytes_setU16((reqbytes-4)>>2, ap);
 
   switch(x->common.pt) {
   case(RTCP_SR  ):
@@ -372,6 +379,7 @@ int iemrtp_rtcp2atoms(const rtcp_t*x, int argc, t_atom*ap) {
     ap+=atombytes_setU32(x->r.sdes.src           , ap);
     for(i=0; i<x->r.sdes.item_count; i++)
       ap+=RTCPatombytes_fromSDES(x->r.sdes.item+i, ap);
+    ap++->a_w.w_float=0; // terminating 0-type item
     break;
   case(RTCP_BYE ):
     for(i=0; i<x->r.bye.src_count; i++)
@@ -380,6 +388,9 @@ int iemrtp_rtcp2atoms(const rtcp_t*x, int argc, t_atom*ap) {
   default:
     return 0;
   }
+  while(padding-->0)
+    ap++->a_w.w_float=0; // padding with zeros
+
   return reqbytes;
 }
 
