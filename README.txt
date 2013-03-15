@@ -19,8 +19,8 @@ working examples can be found in examples/
 
 RTP
 ===
-RTP is the "Real Time Protocol", a lightweight protocol for transmitting
-media data (e.g. audio) over the internet.
+RTP is the "Real-time Transport Protocol", a lightweight protocol for
+transmitting media data (e.g. audio) over the internet.
 
 payloader: [rtp*pay~]
 ---------------------
@@ -63,7 +63,7 @@ LATER we hope to make the encoder modular as well.
 
 RTCP
 ====
-the "Real Time Control Protocol" is used to monitor an RTP-connection
+the "RTP Control Protocol" is used to monitor an RTP-connection
 [unpackRTCP] decodes an RTCP-package into Pd-messages.
 [packRTCP] synthesizes RTCP-packages from Pd-messages.
 
