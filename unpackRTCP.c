@@ -16,13 +16,14 @@
  * You should have received a copy of the GNU General Public License along
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 #include "iemrtp.h"
 #include <stdlib.h>
 static t_class *unpackRTCP_class;
 
 typedef struct _unpackRTCP
 {
-	t_object x_obj;
+  t_object x_obj;
   t_outlet*x_countout;
   t_outlet*x_infoout;
   t_outlet*x_rejectout;
@@ -80,42 +81,42 @@ static void unpackRTCP_sdesitems(t_outlet*out, u_int32 argc, rtcp_sdes_item_t*ar
       outlet_anything(out, s_sdes, count, ap);
       return;
       break;
-    case(RTCP_SDES_CNAME): 
+    case(RTCP_SDES_CNAME):
       if(sdes->data && sdes->data[0]) {SETSYMBOL(ap+count, gensym(sdes->data)); count++; }
       SETSYMBOL(ap, SELECTOR_RTCP_SDES_CNAME);
       outlet_anything(out, s_sdes, count, ap);
       break;
-    case(RTCP_SDES_NAME ): 
+    case(RTCP_SDES_NAME ):
       if(sdes->data && sdes->data[0]) {SETSYMBOL(ap+count, gensym(sdes->data)); count++; }
       SETSYMBOL(ap, SELECTOR_RTCP_SDES_NAME);
       outlet_anything(out, s_sdes, count, ap);
       break;
-    case(RTCP_SDES_EMAIL): 
+    case(RTCP_SDES_EMAIL):
       if(sdes->data && sdes->data[0]) {SETSYMBOL(ap+count, gensym(sdes->data)); count++; }
       SETSYMBOL(ap, SELECTOR_RTCP_SDES_EMAIL);
       outlet_anything(out, s_sdes, count, ap);
       break;
-    case(RTCP_SDES_PHONE): 
+    case(RTCP_SDES_PHONE):
       if(sdes->data && sdes->data[0]) {SETSYMBOL(ap+count, gensym(sdes->data)); count++; }
       SETSYMBOL(ap, SELECTOR_RTCP_SDES_PHONE);
       outlet_anything(out, s_sdes, count, ap);
       break;
-    case(RTCP_SDES_LOC  ): 
+    case(RTCP_SDES_LOC  ):
       if(sdes->data && sdes->data[0]) {SETSYMBOL(ap+count, gensym(sdes->data)); count++; }
       SETSYMBOL(ap, SELECTOR_RTCP_SDES_LOC);
       outlet_anything(out, s_sdes, count, ap);
       break;
-    case(RTCP_SDES_TOOL ): 
+    case(RTCP_SDES_TOOL ):
       if(sdes->data && sdes->data[0]) {SETSYMBOL(ap+count, gensym(sdes->data)); count++; }
       SETSYMBOL(ap, SELECTOR_RTCP_SDES_TOOL);
       outlet_anything(out, s_sdes, count, ap);
       break;
-    case(RTCP_SDES_NOTE ): 
+    case(RTCP_SDES_NOTE ):
       if(sdes->data && sdes->data[0]) {SETSYMBOL(ap+count, gensym(sdes->data)); count++; }
       SETSYMBOL(ap, SELECTOR_RTCP_SDES_NOTE);
       outlet_anything(out, s_sdes, count, ap);
       break;
-    case(RTCP_SDES_PRIV ): 
+    case(RTCP_SDES_PRIV ):
       if(sdes->data && sdes->data[0]) {SETSYMBOL(ap+count, gensym(sdes->data)); count++; }
       SETSYMBOL(ap, SELECTOR_RTCP_SDES_PRIV);
       outlet_anything(out, s_sdes, count, ap);
@@ -253,12 +254,12 @@ static void unpackRTCP_list(t_unpackRTCP*x, t_symbol*s, int argc, t_atom*argv){
 /* create unpackRTCP with args <channels> <skip> */
 static void *unpackRTCP_new(void)
 {
-	t_unpackRTCP *x = (t_unpackRTCP *)pd_new(unpackRTCP_class);
+  t_unpackRTCP *x = (t_unpackRTCP *)pd_new(unpackRTCP_class);
 
-	x->x_infoout=outlet_new(&x->x_obj, &s_float);
-	x->x_countout=outlet_new(&x->x_obj, &s_list);
-	x->x_rejectout=outlet_new(&x->x_obj, &s_list);
-	return (x);
+  x->x_infoout=outlet_new(&x->x_obj, &s_float);
+  x->x_countout=outlet_new(&x->x_obj, &s_list);
+  x->x_rejectout=outlet_new(&x->x_obj, &s_list);
+  return (x);
 }
 
 
@@ -272,8 +273,8 @@ static void unpackRTCP_free(t_unpackRTCP *x) {
 
 void unpackRTCP_setup(void)
 {
-	unpackRTCP_class = class_new(gensym("unpackRTCP"), (t_newmethod)unpackRTCP_new, (t_method)unpackRTCP_free,
-		sizeof(t_unpackRTCP), 0,0);
+  unpackRTCP_class = class_new(gensym("unpackRTCP"), (t_newmethod)unpackRTCP_new, (t_method)unpackRTCP_free,
+    sizeof(t_unpackRTCP), 0,0);
 
-	class_addlist(unpackRTCP_class, (t_method)unpackRTCP_list);
+  class_addlist(unpackRTCP_class, (t_method)unpackRTCP_list);
 }

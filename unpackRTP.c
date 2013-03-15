@@ -16,13 +16,14 @@
  * You should have received a copy of the GNU General Public License along
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 #include "iemrtp.h"
 #include <stdlib.h>
 static t_class *unpackRTP_class;
 
 typedef struct _unpackRTP
 {
-	t_object x_obj;
+  t_object x_obj;
   t_outlet*x_dataout;
   t_outlet*x_infoout;
   t_outlet*x_rejectout;
@@ -81,12 +82,12 @@ static void unpackRTP_list(t_unpackRTP*x, t_symbol*s, int argc, t_atom*argv){
 /* create unpackRTP with args <channels> <skip> */
 static void *unpackRTP_new(void)
 {
-	t_unpackRTP *x = (t_unpackRTP *)pd_new(unpackRTP_class);
+  t_unpackRTP *x = (t_unpackRTP *)pd_new(unpackRTP_class);
 
-	x->x_dataout=outlet_new(&x->x_obj, &s_list);
-	x->x_infoout=outlet_new(&x->x_obj, 0);
-	x->x_rejectout=outlet_new(&x->x_obj, 0);
-	return (x);
+  x->x_dataout=outlet_new(&x->x_obj, &s_list);
+  x->x_infoout=outlet_new(&x->x_obj, 0);
+  x->x_rejectout=outlet_new(&x->x_obj, 0);
+  return (x);
 }
 
 
@@ -101,8 +102,8 @@ static void unpackRTP_free(t_unpackRTP *x) {
 
 void unpackRTP_setup(void)
 {
-	unpackRTP_class = class_new(gensym("unpackRTP"), (t_newmethod)unpackRTP_new, (t_method)unpackRTP_free,
-		sizeof(t_unpackRTP), 0,0);
+  unpackRTP_class = class_new(gensym("unpackRTP"), (t_newmethod)unpackRTP_new, (t_method)unpackRTP_free,
+    sizeof(t_unpackRTP), 0,0);
 
-	class_addlist(unpackRTP_class, (t_method)unpackRTP_list);
+  class_addlist(unpackRTP_class, (t_method)unpackRTP_list);
 }

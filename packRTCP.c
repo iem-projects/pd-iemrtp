@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License along
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 #include "iemrtp.h"
 #include <stdlib.h>
 #include <string.h>
@@ -24,7 +25,7 @@ static t_class *packRTCP_class;
 
 typedef struct _packRTCP
 {
-	t_object x_obj;
+  t_object x_obj;
   t_outlet*x_outlet;
   rtcp_t x_rtcp;
 
@@ -276,13 +277,13 @@ static void packRTCP_bye(t_packRTCP *x, t_symbol*s, int argc, t_atom*argv) {
 
 static t_packRTCP *packRTCP_new(void)
 {
-	t_packRTCP *x = (t_packRTCP *)pd_new(packRTCP_class);
+  t_packRTCP *x = (t_packRTCP *)pd_new(packRTCP_class);
 
   x->x_rtcp.common.version = 2;
   x->x_rtcp.common.pt = RTCP_BYE;
 
-	x->x_outlet=outlet_new(&x->x_obj, &s_float);
-	return (x);
+  x->x_outlet=outlet_new(&x->x_obj, &s_float);
+  return (x);
 }
 
 
@@ -294,10 +295,10 @@ static void packRTCP_free(t_packRTCP *x) {
 
 void packRTCP_setup(void)
 {
-	packRTCP_class = class_new(gensym("packRTCP"), (t_newmethod)packRTCP_new, (t_method)packRTCP_free,
-		sizeof(t_packRTCP), 0,0);
+  packRTCP_class = class_new(gensym("packRTCP"), (t_newmethod)packRTCP_new, (t_method)packRTCP_free,
+    sizeof(t_packRTCP), 0,0);
 
-	class_addbang  (packRTCP_class, (t_method)packRTCP_bang);
+  class_addbang  (packRTCP_class, (t_method)packRTCP_bang);
   class_addmethod(packRTCP_class, (t_method)packRTCP_version, SELECTOR_RTCP_HEADER_VERSION, A_GIMME, 0);
   class_addmethod(packRTCP_class, (t_method)packRTCP_p,       SELECTOR_RTCP_HEADER_P,       A_GIMME, 0);
   class_addmethod(packRTCP_class, (t_method)packRTCP_pt,      SELECTOR_RTCP_HEADER_TYPE,    A_GIMME, 0);

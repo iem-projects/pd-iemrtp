@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License along
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 #include "iemrtp.h"
 #include <string.h>
 
@@ -470,7 +471,7 @@ static void rtppay_preparePacket(t_rtppay*x) {
 
 static t_int *rtppay_perform(t_int *w)
 {
-	t_rtppay* x = (t_rtppay*)(w[1]);
+  t_rtppay* x = (t_rtppay*)(w[1]);
 
   if(!x->x_running && !x->x_banged)return(w+2);
   x->x_banged=0;
@@ -479,7 +480,7 @@ static t_int *rtppay_perform(t_int *w)
     (x->x_perform)(x->x_vecsize, x->x_channels, x->x_in, x->x_buffer);
     clock_delay(x->x_clock, 0);
   }
-	return(w+2);
+  return(w+2);
 }
 
 static void rtppay_tick(t_rtppay *x) {      /* callback function for the clock */
@@ -551,7 +552,7 @@ static void rtppay_dsp(t_rtppay *x, t_signal **sp)
 
 static void rtppay_MTU(t_rtppay *x, t_floatarg f)
 {
-	int t = f;
+  int t = f;
   if(f<x->x_rtpheadersize) {
     pd_error(x, "MTU-size (%d) must not be smaller than %d", t, x->x_rtpheadersize);
   } else {
@@ -668,12 +669,12 @@ static void rtppay_CSRC(t_rtppay *x, t_symbol*s, int argc, t_atom*argv) {
 /* create rtppay with args <channels> <skip> */
 void *iemrtp_rtppay_new(t_rtppay*x, int ichan, int bytespersample, t_rtppay_perform perform)
 {
-	int c;
+  int c;
   if(ichan < 1)
     ichan = 2;
   c=ichan;
 
-	x->x_channels = ichan;
+  x->x_channels = ichan;
   x->x_vecsize  = 1024;
   x->x_mtu      = 1500;
   x->x_atombuffer    = NULL;
@@ -704,12 +705,12 @@ void *iemrtp_rtppay_new(t_rtppay*x, int ichan, int bytespersample, t_rtppay_perf
 
   x->x_in = getbytes(x->x_channels * sizeof(t_sample*));
 
-	while (--c) {
-		inlet_new(&x->x_obj, &x->x_obj.ob_pd, gensym("signal"), gensym("signal")); /* channels inlet */
-	}
-	x->x_outlet=outlet_new(&x->x_obj, gensym("list"));
+  while (--c) {
+    inlet_new(&x->x_obj, &x->x_obj.ob_pd, gensym("signal"), gensym("signal")); /* channels inlet */
+  }
+  x->x_outlet=outlet_new(&x->x_obj, gensym("list"));
 
-	return (x);
+  return (x);
 }
 
 void iemrtp_rtppay_free(t_rtppay *x) {
@@ -721,24 +722,24 @@ void iemrtp_rtppay_free(t_rtppay *x) {
 
 void iemrtp_rtppay_classnew(t_class*rtppay_class)
 {
-	class_addmethod(rtppay_class, nullfn, gensym("signal"), 0);
-	class_addmethod(rtppay_class, (t_method)rtppay_dsp, gensym("dsp"), 0);
+  class_addmethod(rtppay_class, nullfn, gensym("signal"), 0);
+  class_addmethod(rtppay_class, (t_method)rtppay_dsp, gensym("dsp"), 0);
 
-	class_addbang  (rtppay_class, (t_method)rtppay_bang);
-	class_addmethod(rtppay_class, (t_method)rtppay_state, gensym("auto"), A_FLOAT, 0);
-	class_addmethod(rtppay_class, (t_method)rtppay_start, gensym("start"), 0);
-	class_addmethod(rtppay_class, (t_method)rtppay_stop , gensym("stop" ), 0);
-	class_addmethod(rtppay_class, (t_method)rtppay_MTU  , gensym("mtu"), A_FLOAT, 0);
+  class_addbang  (rtppay_class, (t_method)rtppay_bang);
+  class_addmethod(rtppay_class, (t_method)rtppay_state, gensym("auto"), A_FLOAT, 0);
+  class_addmethod(rtppay_class, (t_method)rtppay_start, gensym("start"), 0);
+  class_addmethod(rtppay_class, (t_method)rtppay_stop , gensym("stop" ), 0);
+  class_addmethod(rtppay_class, (t_method)rtppay_MTU  , gensym("mtu"), A_FLOAT, 0);
 
 
-	class_addmethod(rtppay_class, (t_method)rtppay_version, SELECTOR_RTPHEADER_VERSION, A_GIMME, 0);
-	class_addmethod(rtppay_class, (t_method)rtppay_p,       SELECTOR_RTPHEADER_P, A_GIMME, 0);
-	class_addmethod(rtppay_class, (t_method)rtppay_x,       SELECTOR_RTPHEADER_X, A_GIMME, 0);
-	class_addmethod(rtppay_class, (t_method)rtppay_cc,      SELECTOR_RTPHEADER_CC, A_GIMME, 0);
-	class_addmethod(rtppay_class, (t_method)rtppay_m,       SELECTOR_RTPHEADER_M, A_GIMME, 0);
-	class_addmethod(rtppay_class, (t_method)rtppay_pt,      SELECTOR_RTPHEADER_PT, A_GIMME, 0);
-	class_addmethod(rtppay_class, (t_method)rtppay_seq,     SELECTOR_RTPHEADER_SEQ, A_GIMME, 0);
-	class_addmethod(rtppay_class, (t_method)rtppay_ts,      SELECTOR_RTPHEADER_TS, A_GIMME, 0);
-	class_addmethod(rtppay_class, (t_method)rtppay_SSRC,    SELECTOR_RTPHEADER_SSRC, A_GIMME, 0);
-	class_addmethod(rtppay_class, (t_method)rtppay_CSRC,    SELECTOR_RTPHEADER_CSRC, A_GIMME, 0);
+  class_addmethod(rtppay_class, (t_method)rtppay_version, SELECTOR_RTPHEADER_VERSION, A_GIMME, 0);
+  class_addmethod(rtppay_class, (t_method)rtppay_p,       SELECTOR_RTPHEADER_P, A_GIMME, 0);
+  class_addmethod(rtppay_class, (t_method)rtppay_x,       SELECTOR_RTPHEADER_X, A_GIMME, 0);
+  class_addmethod(rtppay_class, (t_method)rtppay_cc,      SELECTOR_RTPHEADER_CC, A_GIMME, 0);
+  class_addmethod(rtppay_class, (t_method)rtppay_m,       SELECTOR_RTPHEADER_M, A_GIMME, 0);
+  class_addmethod(rtppay_class, (t_method)rtppay_pt,      SELECTOR_RTPHEADER_PT, A_GIMME, 0);
+  class_addmethod(rtppay_class, (t_method)rtppay_seq,     SELECTOR_RTPHEADER_SEQ, A_GIMME, 0);
+  class_addmethod(rtppay_class, (t_method)rtppay_ts,      SELECTOR_RTPHEADER_TS, A_GIMME, 0);
+  class_addmethod(rtppay_class, (t_method)rtppay_SSRC,    SELECTOR_RTPHEADER_SSRC, A_GIMME, 0);
+  class_addmethod(rtppay_class, (t_method)rtppay_CSRC,    SELECTOR_RTPHEADER_CSRC, A_GIMME, 0);
 }

@@ -16,13 +16,14 @@
  * You should have received a copy of the GNU General Public License along
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 #include "iemrtp.h"
 
 static t_class *L16decode_class;
 
 typedef struct _L16decode
 {
-	t_object x_obj;
+  t_object x_obj;
   u_int32 x_channels;  // number of channels
 
   /* buffer for outputting samples */
@@ -76,15 +77,15 @@ static void L16decode_channels(t_L16decode *x, t_float c) {
 /* create L16decode with args <channels> <skip> */
 static void *L16decode_new(t_floatarg fchan)
 {
-	t_L16decode *x = (t_L16decode *)pd_new(L16decode_class);
+  t_L16decode *x = (t_L16decode *)pd_new(L16decode_class);
   int ichan = fchan;
   if(ichan < 1)
     ichan = 2;
 
-	x->x_channels = ichan;
-	outlet_new(&x->x_obj, gensym("list"));
+  x->x_channels = ichan;
+  outlet_new(&x->x_obj, gensym("list"));
 
-	return (x);
+  return (x);
 }
 
 
@@ -95,9 +96,9 @@ static void L16decode_free(t_L16decode *x) {
 
 void L16decode_setup(void)
 {
-	L16decode_class = class_new(gensym("L16decode"), (t_newmethod)L16decode_new, (t_method)L16decode_free,
-		sizeof(t_L16decode), 0, A_DEFFLOAT,0);
+  L16decode_class = class_new(gensym("L16decode"), (t_newmethod)L16decode_new, (t_method)L16decode_free,
+    sizeof(t_L16decode), 0, A_DEFFLOAT,0);
 
-	class_addmethod(L16decode_class, (t_method)L16decode_channels , gensym("channels" ), A_FLOAT, 0);
-	class_addlist  (L16decode_class, (t_method)L16decode_list);
+  class_addmethod(L16decode_class, (t_method)L16decode_channels , gensym("channels" ), A_FLOAT, 0);
+  class_addlist  (L16decode_class, (t_method)L16decode_list);
 }
