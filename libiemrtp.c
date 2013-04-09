@@ -441,7 +441,7 @@ RTCP_ENSURE(BYE,  bye.src,   u_int32,          0, 0);
 static void rtppay_preparePacket(t_rtppay*x) {
   u_int32 payload; // number of bytes in a single block
 
-  payload=x->x_channels * x->x_vecsize * x->x_bytespersample; // number of bytes in a single block
+  payload=x->x_usedchannels * x->x_vecsize * x->x_bytespersample; // number of bytes in a single block
 
   /* get buffer for payload */
   if(x->x_buffersize<payload) {
@@ -480,7 +480,7 @@ static t_int *rtppay_perform(t_int *w)
   x->x_banged=0;
 
   if(x->x_perform) {
-    (x->x_perform)(x->x_vecsize, x->x_channels, x->x_in, x->x_buffer);
+    (x->x_perform)(x->x_vecsize, x->x_usedchannels, x->x_in, x->x_buffer);
     clock_delay(x->x_clock, 0);
   }
   return(w+2);
@@ -490,7 +490,7 @@ static void rtppay_tick(t_rtppay *x) {      /* callback function for the clock *
   u_int8*buffer=x->x_buffer;
   int payload=x->x_payload;
   u_int32 mtu = x->x_mtu;
-  u_int32 channels = x->x_channels;
+  u_int32 channels = x->x_usedchannels;
 
   while(payload>0) {
     u_int32 headersize;
@@ -553,21 +553,49 @@ static void rtppay_dsp(t_rtppay *x, t_signal **sp)
   dsp_add(rtppay_perform, 1, x);
 }
 
+static u_int8 rtppay_state(t_rtppay *x, t_float f);
+static void rtppay_restart(t_rtppay*x) {
+  u_int8 oldstate=rtppay_state(x, 0);
+  rtppay_preparePacket(x);
+  rtppay_state(x, oldstate);
+}
+
 static void rtppay_MTU(t_rtppay *x, t_floatarg f)
 {
   int t = f;
-  if(f<x->x_rtpheadersize) {
-    pd_error(x, "MTU-size (%d) must not be smaller than %d", t, x->x_rtpheadersize);
-  } else {
-    x->x_mtu = t;
+  int minsize=x->x_rtpheadersize + x->x_channels * x->x_bytespersample;
+  if(f<minsize) {
+    pd_error(x, "MTU-size (%d) must not be smaller than %d", t, minsize);
+    return;
   }
+  x->x_mtu = t;
+  rtppay_restart(x);
 }
 
-static void rtppay_state(t_rtppay *x, t_float f) {
+static void rtppay_chans(t_rtppay *x, t_floatarg f)
+{
+  int i = f;
+  unsigned u;
+  if(i<0) {
+    pd_error(x, "negative number of active channels (%d) not permitted", i);
+    return;
+  }
+  u=i;
+  if(u>x->x_channels) {
+    pd_error(x, "cannot have more active channels (%u) than physical channels %d", u, x->x_channels);
+    return;
+  }
+  x->x_usedchannels = u;
+  rtppay_restart(x);
+}
+
+static u_int8 rtppay_state(t_rtppay *x, t_float f) {
+  u_int8 oldstate=x->x_running;
   if((int)f)
     x->x_rtpheader.m    = 1;
 
   x->x_running = (int)f;
+  return oldstate;
 }
 
 static void rtppay_start(t_rtppay *x) {
@@ -678,6 +706,7 @@ void *iemrtp_rtppay_new(t_rtppay*x, int ichan, int bytespersample, t_rtppay_perf
   c=ichan;
 
   x->x_channels = ichan;
+  x->x_usedchannels = x->x_channels;
   x->x_vecsize  = 1024;
   x->x_mtu      = 1500;
   x->x_atombuffer    = NULL;
@@ -685,7 +714,11 @@ void *iemrtp_rtppay_new(t_rtppay*x, int ichan, int bytespersample, t_rtppay_perf
   x->x_buffer        = NULL;
   x->x_buffersize    = 0;
 
-  if(bytespersample<1)bytespersample=1;
+  if(bytespersample<1) {
+    pd_error(x, "bytespersample = %d, must be at least 1", bytespersample);
+    bytespersample=1;
+
+  }
   x->x_bytespersample=bytespersample;
   x->x_perform = perform;
 
@@ -733,6 +766,7 @@ void iemrtp_rtppay_classnew(t_class*rtppay_class)
   class_addmethod(rtppay_class, (t_method)rtppay_start, gensym("start"), 0);
   class_addmethod(rtppay_class, (t_method)rtppay_stop , gensym("stop" ), 0);
   class_addmethod(rtppay_class, (t_method)rtppay_MTU  , gensym("mtu"), A_FLOAT, 0);
+  class_addmethod(rtppay_class, (t_method)rtppay_chans, gensym("channels"), A_FLOAT, 0);
 
 
   class_addmethod(rtppay_class, (t_method)rtppay_version, SELECTOR_RTPHEADER_VERSION, A_GIMME, 0);

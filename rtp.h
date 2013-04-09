@@ -105,6 +105,7 @@ typedef struct _rtppay
   u_int8 x_banged;
 
   u_int32 x_channels;  // number of channels
+  u_int32 x_usedchannels;  // number of channels to be transmitted (defaults to x_channels)
   u_int32 x_vecsize;   // Pd's blocksize
   u_int32 x_mtu;       // MTU of the socket
 
