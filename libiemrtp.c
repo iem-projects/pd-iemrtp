@@ -207,7 +207,7 @@ static u_int32 atoms2rtcp_sdes(rtcp_sdes_t*x, u_int32 argc, t_atom*argv) {
   u_int32 f, frames = 0;
   u_int8 len;
   u_int32 datalengths=0;
-  if(argc<4+1+1) { // SRC+item0.type+item0.length
+  if(argc<4+1+1) { /* SRC+item0.type+item0.length */
     return -(4+1+1);
   }
   x->src     = atombytes_getU32(argv+ 0);
@@ -217,9 +217,9 @@ static u_int32 atoms2rtcp_sdes(rtcp_sdes_t*x, u_int32 argc, t_atom*argv) {
       datalengths<argc-4;
       frames++) {
     int type=atom_getint(ap++);
-    if(type==0)break; // stop type
-    datalengths++ ; // skip type
-    len=atom_getint(ap++); datalengths++; //length of following string
+    if(type==0)break; /* stop type */
+    datalengths++ ; /* skip type */
+    len=atom_getint(ap++); datalengths++; /* length of following string */
     ap+=len; datalengths+=len;
   }
 
@@ -239,7 +239,7 @@ static u_int32 atoms2rtcp_sdes(rtcp_sdes_t*x, u_int32 argc, t_atom*argv) {
     }
     item->data[len]=0;
   }
-  return argc; // datalengths+4
+  return argc; /* datalengths+4 */
 }
 
 
@@ -293,7 +293,7 @@ int iemrtp_atoms2rtcp(int argc, t_atom*argv, rtcp_t*x) {
     retval+=atoms2rtcp_bye(&(x->r.bye), length*4, argv+4);
     break;
   case(RTCP_APP):
-    //atoms2rtcp_app(&(x->r.app), length*4, argv+4);
+    /* atoms2rtcp_app(&(x->r.app), length*4, argv+4); */
     break;
   }
   return retval;
@@ -343,7 +343,7 @@ int iemrtp_rtcp2atoms(const rtcp_t*x, int argc, t_atom*ap) {
     reqbytes+=4;
     for(i=0; i<x->r.sdes.item_count; i++)
       reqbytes+=2+x->r.sdes.item[i].length;
-    reqbytes+=1; // there's an extra 0 byte at the end of SDES items
+    reqbytes+=1; /* there's an extra 0 byte at the end of SDES items */
     break;
   case(RTCP_BYE ):
     reqbytes+=4*x->r.bye.src_count;
@@ -352,10 +352,10 @@ int iemrtp_rtcp2atoms(const rtcp_t*x, int argc, t_atom*ap) {
   case(RTCP_APP ):
     return 0;
   }
-  padding = (reqbytes%4)?(4 - (reqbytes & 0x3)):0; // packetsize must be 4byte aligned
+  padding = (reqbytes%4)?(4 - (reqbytes & 0x3)):0; /* packetsize must be 4byte aligned */
   reqbytes += padding;
 
-  if(argc<reqbytes)return -reqbytes; // header takes at least 4 bytes
+  if(argc<reqbytes)return -reqbytes; /* header takes at least 4 bytes */
 
   /* write header */
   b=(x->common.version << 6) | (x->common.p << 5) | (x->common.count);
@@ -386,7 +386,7 @@ int iemrtp_rtcp2atoms(const rtcp_t*x, int argc, t_atom*ap) {
     ap+=atombytes_setU32(x->r.sdes.src           , ap);
     for(i=0; i<x->r.sdes.item_count; i++)
       ap+=RTCPatombytes_fromSDES(x->r.sdes.item+i, ap);
-    ap++->a_w.w_float=0; // terminating 0-type item
+    ap++->a_w.w_float=0; /* terminating 0-type item */
     break;
   case(RTCP_BYE ):
     for(i=0; i<x->r.bye.src_count; i++)
@@ -396,7 +396,7 @@ int iemrtp_rtcp2atoms(const rtcp_t*x, int argc, t_atom*ap) {
     return 0;
   }
   while(padding-->0)
-    ap++->a_w.w_float=0; // padding with zeros
+    ap++->a_w.w_float=0; /* padding with zeros */
 
   return reqbytes;
 }
@@ -443,8 +443,8 @@ RTCP_ENSURE(BYE,  bye.src,   u_int32,          0, 0);
 /* ======================================================== */
 
 static void rtppay_preparePacket(t_rtppay*x) {
-  u_int32 payload; // number of bytes in a single block
-  u_int32 framesize=x->x_usedchannels * x->x_vecsize * x->x_bytespersample; // number of bytes in a single block
+  u_int32 payload; /* number of bytes in a single block */
+  u_int32 framesize=x->x_usedchannels * x->x_vecsize * x->x_bytespersample; /* number of bytes in a single block */
   int numframes = (framesize>0)?((x->x_mtu - x->x_rtpheadersize) / framesize):1;
   if(numframes<1)numframes=1;
   payload=numframes*framesize;
@@ -464,8 +464,8 @@ static void rtppay_preparePacket(t_rtppay*x) {
     x->x_atombuffersize = x->x_mtu;
     x->x_atombuffer = getbytes(x->x_atombuffersize * sizeof(t_atom));
 
-    // initialize the buffers with floats,
-    // so we don't have to repeatedly set the atomtype later
+    /* initialize the buffers with floats, */
+    /* so we don't have to repeatedly set the atomtype later */
     for(i=0; i<x->x_atombuffersize; i++) {
       SETFLOAT(x->x_atombuffer+i, 0);
     }
@@ -494,12 +494,13 @@ static t_int *rtppay_perform(t_int *w)
   return(w+2);
 }
 
-static void rtppay_tick(t_rtppay *x) {      /* callback function for the clock */
+/* callback function for the clock */
+static void rtppay_tick(t_rtppay *x) {
   u_int8*buffer=x->x_buffer;
   int payload=x->x_payload;
   u_int32 mtu = x->x_mtu;
   u_int32 channels = x->x_usedchannels;
-  x->x_payload=0; // restart filling the payload buffer
+  x->x_payload=0; /* restart filling the payload buffer */
 
   while(payload>0) {
     u_int32 headersize;
@@ -722,7 +723,7 @@ void *iemrtp_rtppay_new(t_rtppay*x, t_symbol*s, int bytespersample, t_rtppay_per
   }
   x->x_channels = c;
   x->x_usedchannels = x->x_channels;
-  x->x_vecsize  = 1024; // FIXXME: default vecsize = 64
+  x->x_vecsize  = 1024; /* FIXXME: default vecsize = 64 */
   x->x_mtu      = 1500;
   x->x_atombuffer    = NULL;
   x->x_atombuffersize= 0;
