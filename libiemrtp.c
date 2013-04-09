@@ -444,16 +444,18 @@ RTCP_ENSURE(BYE,  bye.src,   u_int32,          0, 0);
 
 static void rtppay_preparePacket(t_rtppay*x) {
   u_int32 payload; // number of bytes in a single block
-
-  payload=x->x_usedchannels * x->x_vecsize * x->x_bytespersample; // number of bytes in a single block
+  u_int32 framesize=x->x_usedchannels * x->x_vecsize * x->x_bytespersample; // number of bytes in a single block
+  int numframes = (framesize>0)?((x->x_mtu - x->x_rtpheadersize) / framesize):1;
+  if(numframes<1)numframes=1;
+  payload=numframes*framesize;
 
   /* get buffer for payload */
   if(x->x_buffersize<payload) {
     if(x->x_buffer)freebytes(x->x_buffer, x->x_buffersize);
     x->x_buffersize=payload;
     x->x_buffer = getbytes(x->x_buffersize);
+    x->x_payload=0;
   }
-  x->x_payload=payload;
 
   if(x->x_atombuffersize < x->x_mtu) {
     u_int32 i;
@@ -481,11 +483,14 @@ static t_int *rtppay_perform(t_int *w)
   t_rtppay* x = (t_rtppay*)(w[1]);
 
   if(x->x_running || x->x_banged) {
-    x->x_banged=0;
-
-    (x->x_perform)(x->x_vecsize, x->x_usedchannels, x->x_in, x->x_buffer);
-    clock_delay(x->x_clock, 0);
+    unsigned int framesize=x->x_usedchannels * x->x_vecsize * x->x_bytespersample;
+    (x->x_perform)(x->x_vecsize, x->x_usedchannels, x->x_in, x->x_buffer+x->x_payload);
+    x->x_payload+=framesize;
+    /* check whether adding another frame would spill the MTU...if so send the packet */
+    if(x->x_banged || x->x_rtpheadersize + x->x_payload+framesize > x->x_mtu)
+      clock_delay(x->x_clock, 0);
   }
+  x->x_banged=0;
   return(w+2);
 }
 
@@ -494,6 +499,7 @@ static void rtppay_tick(t_rtppay *x) {      /* callback function for the clock *
   int payload=x->x_payload;
   u_int32 mtu = x->x_mtu;
   u_int32 channels = x->x_usedchannels;
+  x->x_payload=0; // restart filling the payload buffer
 
   while(payload>0) {
     u_int32 headersize;
@@ -605,6 +611,9 @@ static void rtppay_start(t_rtppay *x) {
   rtppay_state(x, 1);
 }
 static void rtppay_bang(t_rtppay *x) {
+  /* packetize the current payload */
+  rtppay_tick(x);
+  /* and schedule the next DSP-block to be packetized */
   x->x_banged=1;
 }
 static void rtppay_stop(t_rtppay *x) {
