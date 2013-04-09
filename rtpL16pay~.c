@@ -48,12 +48,13 @@ static void L16_perform(u_int32 vecsize, u_int32 channels, t_sample**ins, u_int8
   }
 }
 
-/* create rtpL16pay with args <channels> <skip> */
-static void *rtpL16pay_new(t_floatarg fchan)
+/* create rtpL16pay with args <channels> */
+static void *rtpL16pay_new(t_symbol*s, int argc, t_atom*argv)
 {
-  int ichan = fchan;
   t_rtpL16pay *x = (t_rtpL16pay *)pd_new(rtpL16pay_class);
-  return iemrtp_rtppay_new(&x->x_obj, ichan, 2, L16_perform);
+  return iemrtp_rtppay_new(&x->x_obj, s,
+                           2, L16_perform,
+                           argc, argv);
 }
 
 
@@ -64,7 +65,9 @@ static void rtpL16pay_free(t_rtpL16pay *x) {
 
 void rtpL16pay_tilde_setup(void)
 {
-  rtpL16pay_class = class_new(gensym("rtpL16pay~"), (t_newmethod)rtpL16pay_new, (t_method)rtpL16pay_free,
-                           sizeof(t_rtpL16pay), 0, A_DEFFLOAT,0);
+  rtpL16pay_class = class_new(gensym("rtpL16pay~"),
+                              (t_newmethod)rtpL16pay_new, (t_method)rtpL16pay_free,
+                              sizeof(t_rtpL16pay), 0,
+                              A_GIMME,0);
   iemrtp_rtppay_classnew(rtpL16pay_class);
 }

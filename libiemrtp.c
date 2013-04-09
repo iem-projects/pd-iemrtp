@@ -698,14 +698,18 @@ static void rtppay_CSRC(t_rtppay *x, t_symbol*s, int argc, t_atom*argv) {
 
 
 /* create rtppay with args <channels> <skip> */
-void *iemrtp_rtppay_new(t_rtppay*x, int ichan, int bytespersample, t_rtppay_perform perform)
+void *iemrtp_rtppay_new(t_rtppay*x, t_symbol*s, int bytespersample, t_rtppay_perform perform, int argc, t_atom*argv)
 {
-  int c;
-  if(ichan < 1)
-    ichan = 2;
-  c=ichan;
-
-  x->x_channels = ichan;
+  int c = 2;
+  post("argc=%d", argc);
+  if(argc) {
+    c=atom_getint(argv);
+    if(c<1) {
+      pd_error(x, "#channels must be >=1 (was %d)", c);
+      c=2;
+    }
+  }
+  x->x_channels = c;
   x->x_usedchannels = x->x_channels;
   x->x_vecsize  = 1024;
   x->x_mtu      = 1500;

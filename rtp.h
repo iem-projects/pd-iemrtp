@@ -130,6 +130,6 @@ typedef struct _rtppay
   u_int32 x_payload;
 } t_rtppay;
 
-void *iemrtp_rtppay_new(t_rtppay*x, int chan, int bytespersample, t_rtppay_perform perform);
+void *iemrtp_rtppay_new(t_rtppay*x, t_symbol*s, int bytespersample, t_rtppay_perform perform, int argc, t_atom*argv);
 void iemrtp_rtppay_free(t_rtppay*x);
 void iemrtp_rtppay_classnew(t_class*rtppay_class);
