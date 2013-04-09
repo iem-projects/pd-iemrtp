@@ -701,7 +701,6 @@ static void rtppay_CSRC(t_rtppay *x, t_symbol*s, int argc, t_atom*argv) {
 void *iemrtp_rtppay_new(t_rtppay*x, t_symbol*s, int bytespersample, t_rtppay_perform perform, int argc, t_atom*argv)
 {
   int c = 2;
-  post("argc=%d", argc);
   if(argc) {
     c=atom_getint(argv);
     if(c<1) {
@@ -711,7 +710,7 @@ void *iemrtp_rtppay_new(t_rtppay*x, t_symbol*s, int bytespersample, t_rtppay_per
   }
   x->x_channels = c;
   x->x_usedchannels = x->x_channels;
-  x->x_vecsize  = 1024;
+  x->x_vecsize  = 1024; // FIXXME: default vecsize = 64
   x->x_mtu      = 1500;
   x->x_atombuffer    = NULL;
   x->x_atombuffersize= 0;
