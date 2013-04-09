@@ -476,10 +476,9 @@ static t_int *rtppay_perform(t_int *w)
 {
   t_rtppay* x = (t_rtppay*)(w[1]);
 
-  if(!x->x_running && !x->x_banged)return(w+2);
-  x->x_banged=0;
+  if(x->x_running || x->x_banged) {
+    x->x_banged=0;
 
-  if(x->x_perform) {
     (x->x_perform)(x->x_vecsize, x->x_usedchannels, x->x_in, x->x_buffer);
     clock_delay(x->x_clock, 0);
   }
@@ -549,8 +548,8 @@ static void rtppay_dsp(t_rtppay *x, t_signal **sp)
   for(c=0; c<x->x_channels; c++) {
     x->x_in[c]=sp[c]->s_vec;
   }
-
-  dsp_add(rtppay_perform, 1, x);
+  if(x->x_perform)
+    dsp_add(rtppay_perform, 1, x);
 }
 
 static u_int8 rtppay_state(t_rtppay *x, t_float f);
