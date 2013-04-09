@@ -23,6 +23,10 @@
 #include "iemrtp.h"
 #include <string.h>
 
+STATIC_INLINE u_int32 iemrtp_rtpheadersize(t_rtpheader*rtpheader) {
+  return rtpheader?(12 + 4*rtpheader->cc):12;
+}
+
 u_int32 iemrtp_rtpheader2atoms(t_rtpheader*rtpheader, t_atom*ap0) {
   t_atom*ap=ap0;
   u_int8 b;
