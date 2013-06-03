@@ -126,6 +126,12 @@ static t_rtpbuffer_packet* UNUSED_FUNCTION(packet_matchTS)(t_rtpbuffer_packet*pk
   if((timestamp >= pkt->timestamp) && (timestamp <= pkt->stopstamp)) return pkt;
   return NULL;
 }
+
+static t_rtpbuffer_packet* packet_matchTSrange(t_rtpbuffer_packet*pkt, const u_int32 ts0, u_int32 ts1) {
+  if((ts0 <= pkt->stopstamp) && (pkt->timestamp <= ts1)) return pkt;
+  return NULL;
+}
+
 /* returns the given packet if it has data after timestamp */
 static t_rtpbuffer_packet* packet_afterTS(t_rtpbuffer_packet*pkt, const u_int32 timestamp) {
   if(pkt->timestamp>=timestamp)return pkt;
@@ -136,6 +142,8 @@ static t_rtpbuffer_packet* packet_afterTS(t_rtpbuffer_packet*pkt, const u_int32 
   if(pkt->stopstamp>=timestamp)return pkt;
   return NULL;
 }
+
+
 
 
 static void rtpbuffer_queryTS(t_rtpbuffer*x, const u_int32 ts0, const u_int32 ts1){
@@ -151,7 +159,8 @@ static void rtpbuffer_queryTS(t_rtpbuffer*x, const u_int32 ts0, const u_int32 ts
   /* and output them */
   if(pkt) {
     for(buf=pkt; buf && buf->timestamp<=ts1; buf=buf->next) {
-      rtpbuffer_pktout(x, buf);
+      if(NULL!=packet_matchTSrange(buf, ts0, ts1))
+        rtpbuffer_pktout(x, buf);
     }
   }
 }
