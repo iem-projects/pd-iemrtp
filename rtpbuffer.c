@@ -34,6 +34,7 @@ static t_class *rtpbuffer_class;
 
 typedef struct _rtpbuffer_packet {
   u_int32 timestamp;
+  u_int32 stopstamp;
   int argc;
   t_atom*argv;
   struct _rtpbuffer_packet *next;
@@ -48,8 +49,18 @@ typedef struct _rtpbuffer
   t_rtpbuffer_packet*x_start;
   u_int32 x_packetcount;
   u_int32 x_maxpackets;
+
+  t_inlet*x_durin;
+  t_float x_packetduration; /* in ticks */
 } t_rtpbuffer;
 
+static u_int32 rtpbuffer_getpktdur(t_rtpbuffer*x) {
+  u_int32 result=0;
+  if(x->x_packetduration>0)
+    result=x->x_packetduration;
+  x->x_packetduration=0;
+  return result;
+}
 
 static void rtpbuffer_info_added(t_rtpbuffer*x, u_int32 ts) {
   t_atom ap[2];
@@ -91,8 +102,28 @@ static void packet_destroy(t_rtpbuffer_packet*pkt) {
   free(pkt);
 }
 
+static void rtpbuffer_freepackets(t_rtpbuffer*x) {
+  t_rtpbuffer_packet*pkt;
+  t_atom ap[1];
+  for(pkt=x->x_start; pkt; pkt=pkt->next) {
+    u_int32 ts=pkt->timestamp;
+    x->x_start=pkt;
+    packet_destroy(pkt);
+    x->x_packetcount--;
+    rtpbuffer_info_deleted(x, ts);
+  }
+  x->x_start=NULL;
+  if(x->x_packetcount) {
+    pd_error(x, "after deleting all packets, we still have a packetcount of %d", x->x_packetcount);
+    x->x_packetcount=0;
+  }
+  SETFLOAT(ap, x->x_packetcount);
+  outlet_anything(x->x_infout, gensym("size"), 1, ap);
+}
+
+
 static t_rtpbuffer_packet* UNUSED_FUNCTION(packet_matchTS)(t_rtpbuffer_packet*pkt, const u_int32 timestamp) {
-  if(timestamp == pkt->timestamp) return pkt;
+  if((timestamp >= pkt->timestamp) && (timestamp <= pkt->stopstamp)) return pkt;
   return NULL;
 }
 /* returns the given packet if it has data after timestamp */
@@ -102,6 +133,7 @@ static t_rtpbuffer_packet* packet_afterTS(t_rtpbuffer_packet*pkt, const u_int32 
    * if the packet holds data from TS0..TS1 and timestamp is inbetween (TS0<timestamp<TS1)
    * then the packet is skipped, which it should not
    */
+  if(pkt->stopstamp>=timestamp)return pkt;
   return NULL;
 }
 
@@ -145,6 +177,10 @@ static void rtpbuffer_list(t_rtpbuffer*x, t_symbol* UNUSED(s), int argc, t_atom*
   t_rtpbuffer_packet*prev=NULL;
   /* insert it into the buffer list */
   t_rtpbuffer_packet*buf;
+
+  if(!pkt)return;
+  pkt->stopstamp = pkt->timestamp+rtpbuffer_getpktdur(x);
+
   for(buf=x->x_start; buf; buf=buf->next) {
     if(buf->timestamp > pkt->timestamp)
       break;
@@ -168,8 +204,8 @@ static void rtpbuffer_list(t_rtpbuffer*x, t_symbol* UNUSED(s), int argc, t_atom*
     x->x_start=prev->next;
     packet_destroy(prev);
     prev=x->x_start;
-    rtpbuffer_info_deleted(x, ts);
     x->x_packetcount--;
+    rtpbuffer_info_deleted(x, ts);
   }
 
   SETFLOAT(ap, x->x_packetcount);
@@ -191,6 +227,9 @@ static void *rtpbuffer_new(t_float f)
   x->x_maxpackets = (maxpackets<1)?32:maxpackets;
   x->x_packetcount= 0;
 
+  x->x_packetduration=0;
+  x->x_durin=floatinlet_new(&x->x_obj, &x->x_packetduration);
+
   x->x_dataout=outlet_new(&x->x_obj, &s_list);
 
   /* outlet for misc information, e.g. when we drop buffers, or don't have buffers */
@@ -203,6 +242,8 @@ static void *rtpbuffer_new(t_float f)
 static void rtpbuffer_free(t_rtpbuffer *x) {
   outlet_free(x->x_dataout);
   outlet_free(x->x_infout);
+  inlet_free (x->x_durin);
+  rtpbuffer_freepackets(x);
 }
 
 void rtpbuffer_setup(void)
