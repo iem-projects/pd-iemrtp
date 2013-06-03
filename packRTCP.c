@@ -112,10 +112,10 @@ static void packRTCP_pt(t_packRTCP *x, t_symbol*s, int argc, t_atom*argv) {
     x->x_rtcp.common.pt = pt;
   }  else     post("pt: %d", x->x_rtcp.common.pt);
 }
-static void packRTCP_app(t_packRTCP *x, t_symbol*s, int argc, t_atom*argv) {
+static void packRTCP_app(t_packRTCP *x, t_symbol*s, int UNUSED(argc), t_atom* UNUSED(argv)) {
   pd_error(x, "'%s' type currently unsupported", s->s_name);
 }
-static void packRTCP_count(t_packRTCP *x, t_symbol*s, int argc, t_atom*argv) {
+static void packRTCP_count(t_packRTCP *x, t_symbol*s, int UNUSED(argc), t_atom* UNUSED(argv)) {
 #warning FIXXME
   pd_error(x, "'%s' currently unsupported", s->s_name);
 }

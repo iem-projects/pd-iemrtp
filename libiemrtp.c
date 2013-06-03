@@ -711,7 +711,7 @@ static void rtppay_CSRC(t_rtppay *x, t_symbol*s, int argc, t_atom*argv) {
 
 
 /* create rtppay with args <channels> <skip> */
-void *iemrtp_rtppay_new(t_rtppay*x, t_symbol*s, int bytespersample, t_rtppay_perform perform, int argc, t_atom*argv)
+void *iemrtp_rtppay_new(t_rtppay*x, t_symbol* UNUSED(s), int bytespersample, t_rtppay_perform perform, int argc, t_atom*argv)
 {
   int c = 2;
   if(argc) {
