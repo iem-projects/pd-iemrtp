@@ -761,6 +761,7 @@ void *iemrtp_rtppay_new(t_rtppay*x, t_symbol* UNUSED(s), int bytespersample, t_r
     inlet_new(&x->x_obj, &x->x_obj.ob_pd, gensym("signal"), gensym("signal")); /* channels inlet */
   }
   x->x_outlet=outlet_new(&x->x_obj, gensym("list"));
+  x->x_infout=outlet_new(&x->x_obj, 0);
 
   return (x);
 }
@@ -770,6 +771,7 @@ void iemrtp_rtppay_free(t_rtppay *x) {
   if(x->x_atombuffer) freebytes(x->x_atombuffer, x->x_atombuffersize * sizeof(*(x->x_atombuffer)));
   if(x->x_in)         freebytes(x->x_in        , x->x_channels       * sizeof(t_sample*));
   if(x->x_clock)      clock_free(x->x_clock);
+  if(x->x_infout)     outlet_free(x->x_infout);
   if(x->x_outlet)     outlet_free(x->x_outlet);
 }
 

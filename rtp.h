@@ -125,6 +125,7 @@ typedef struct _rtppay
   u_int32 x_atombuffersize;
   t_clock*x_clock;
   t_outlet*x_outlet;
+  t_outlet*x_infout;
 
   /* packetizing */
   u_int32 x_payload;
