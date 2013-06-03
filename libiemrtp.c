@@ -496,6 +496,7 @@ static t_int *rtppay_perform(t_int *w)
 
 /* callback function for the clock */
 static void rtppay_tick(t_rtppay *x) {
+  t_atom duratom[1];
   u_int8*buffer=x->x_buffer;
   int payload=x->x_payload;
   u_int32 mtu = x->x_mtu;
@@ -535,6 +536,8 @@ static void rtppay_tick(t_rtppay *x) {
     for(j=0; j<packetsize; j++) {
       ap[j].a_w.w_float=*buffer++;
     }
+    SETFLOAT(duratom, frames);
+    outlet_anything(x->x_infout, gensym("duration"), 1, duratom);
     outlet_list(x->x_outlet, &s_list, headersize+packetsize, x->x_atombuffer);
 
     x->x_rtpheader.seq += 1;
