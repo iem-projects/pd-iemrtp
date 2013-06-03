@@ -35,6 +35,14 @@
 #error No byte order defined
 #endif
 
+#ifdef __GNUC__
+#  define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
+#  define UNUSED_FUNCTION(x) __attribute__((__unused__)) UNUSEDFUN_ ## x
+#else
+#  define UNUSED(x) UNUSED_ ## x
+#  define UNUSED_FUNCTION(x) UNUSEDFUN_ ## x
+#endif
+
 #include <stdlib.h>
 
 #if 1
