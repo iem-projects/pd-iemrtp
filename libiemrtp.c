@@ -770,6 +770,7 @@ void iemrtp_rtppay_free(t_rtppay *x) {
   if(x->x_atombuffer) freebytes(x->x_atombuffer, x->x_atombuffersize * sizeof(*(x->x_atombuffer)));
   if(x->x_in)         freebytes(x->x_in        , x->x_channels       * sizeof(t_sample*));
   if(x->x_clock)      clock_free(x->x_clock);
+  if(x->x_outlet)     outlet_free(x->x_outlet);
 }
 
 void iemrtp_rtppay_classnew(t_class*rtppay_class)
