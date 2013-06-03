@@ -50,6 +50,22 @@ typedef struct _rtpbuffer
   u_int32 x_maxpackets;
 } t_rtpbuffer;
 
+
+static void rtpbuffer_info_added(t_rtpbuffer*x, u_int32 ts) {
+  t_atom ap[2];
+  SETUINT32(ap, ts);
+  outlet_anything(x->x_infout, gensym("added"), 2, ap);
+}
+static void rtpbuffer_info_deleted(t_rtpbuffer*x, u_int32 ts) {
+  t_atom ap[2];
+  SETUINT32(ap, ts);
+  outlet_anything(x->x_infout, gensym("deleted"), 2, ap);
+}
+static void rtpbuffer_pktout(t_rtpbuffer*x, t_rtpbuffer_packet*pkt) {
+  outlet_list(x->x_dataout, 0, pkt->argc, pkt->argv);
+}
+
+
 static t_rtpbuffer_packet*packet_create(int argc, t_atom*argv) {
   t_rtpheader hdr;
   t_rtpbuffer_packet*pkt=NULL;
@@ -89,10 +105,12 @@ static t_rtpbuffer_packet* packet_afterTS(t_rtpbuffer_packet*pkt, const u_int32 
   return NULL;
 }
 
+
 static void rtpbuffer_queryTS(t_rtpbuffer*x, const u_int32 ts0, const u_int32 ts1){
   t_rtpbuffer_packet*pkt=NULL;
   /* find packet with matching timestamp */
   t_rtpbuffer_packet*buf;
+
   for(buf=x->x_start; buf; buf=buf->next) {
     pkt=packet_afterTS(buf, ts0);
     if(pkt)break;
@@ -101,7 +119,7 @@ static void rtpbuffer_queryTS(t_rtpbuffer*x, const u_int32 ts0, const u_int32 ts
   /* and output them */
   if(pkt) {
     for(buf=pkt; buf && buf->timestamp<=ts1; buf=buf->next) {
-      outlet_list(x->x_dataout, 0, buf->argc, buf->argv);
+      rtpbuffer_pktout(x, buf);
     }
   }
 }
@@ -110,22 +128,12 @@ static void rtpbuffer_query(t_rtpbuffer*x, t_symbol* UNUSED(s), int argc, t_atom
   u_int32 ts0, ts1;
   ts0=GETUINT32(argc<2?argc:2, argv);
   if(argc>2)
-    ts1=GETUINT32(argc-2, argv);
+    ts1=GETUINT32(argc-2, argv+2);
   else
     ts1=ts0;
   rtpbuffer_queryTS(x, ts0, ts1);
 }
 
-static void rtpbuffer_info_added(t_rtpbuffer*x, u_int32 ts) {
-  t_atom ap[2];
-  SETUINT32(ap, ts);
-  outlet_anything(x->x_infout, gensym("added"), 2, ap);
-}
-static void rtpbuffer_info_deleted(t_rtpbuffer*x, u_int32 ts) {
-  t_atom ap[2];
-  SETUINT32(ap, ts);
-  outlet_anything(x->x_infout, gensym("deleted"), 2, ap);
-}
 /* add a new packet to the buffer */
 static void rtpbuffer_list(t_rtpbuffer*x, t_symbol* UNUSED(s), int argc, t_atom*argv) {
   u_int32 i;
@@ -138,7 +146,7 @@ static void rtpbuffer_list(t_rtpbuffer*x, t_symbol* UNUSED(s), int argc, t_atom*
   /* insert it into the buffer list */
   t_rtpbuffer_packet*buf;
   for(buf=x->x_start; buf; buf=buf->next) {
-    if(pkt->timestamp > buf->timestamp)
+    if(buf->timestamp > pkt->timestamp)
       break;
     prev=buf;
   }
@@ -167,13 +175,20 @@ static void rtpbuffer_list(t_rtpbuffer*x, t_symbol* UNUSED(s), int argc, t_atom*
   SETFLOAT(ap, x->x_packetcount);
   outlet_anything(x->x_infout, gensym("size"), 1, ap);
 }
+static void rtpbuffer_bang(t_rtpbuffer*x) {
+  t_rtpbuffer_packet*pkt;
+  for(pkt=x->x_start; pkt; pkt=pkt->next) {
+    rtpbuffer_pktout(x, pkt);
+  }
+}
 
 /* create rtpbuffer with args <channels> <skip> */
-static void *rtpbuffer_new(void)
+static void *rtpbuffer_new(t_float f)
 {
+  int maxpackets = f;
   t_rtpbuffer *x = (t_rtpbuffer *)pd_new(rtpbuffer_class);
 
-  x->x_maxpackets = 32;
+  x->x_maxpackets = (maxpackets<1)?32:maxpackets;
   x->x_packetcount= 0;
 
   x->x_dataout=outlet_new(&x->x_obj, &s_list);
@@ -193,7 +208,11 @@ static void rtpbuffer_free(t_rtpbuffer *x) {
 void rtpbuffer_setup(void)
 {
   rtpbuffer_class = class_new(gensym("rtpbuffer"), (t_newmethod)rtpbuffer_new, (t_method)rtpbuffer_free,
-    sizeof(t_rtpbuffer), 0,0);
+                              sizeof(t_rtpbuffer), 0, A_DEFFLOAT, A_NULL);
+
+  /* dump all the buffered packets */
+  class_addbang(rtpbuffer_class, (t_method)rtpbuffer_bang);
+
 
   /* add a new buffer */
   class_addlist(rtpbuffer_class, (t_method)rtpbuffer_list);
