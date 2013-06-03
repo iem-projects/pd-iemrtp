@@ -53,6 +53,7 @@ typedef struct _rtpbuffer
 static t_rtpbuffer_packet*packet_create(int argc, t_atom*argv) {
   t_rtpheader hdr;
   t_rtpbuffer_packet*pkt=NULL;
+  memset(&hdr, 0, sizeof(hdr));
   if(iemrtp_atoms2rtpheader(argc, argv, &hdr)>0) {
     pkt=(t_rtpbuffer_packet*)calloc(1, sizeof(t_rtpbuffer_packet));
     if(pkt) {
