@@ -151,6 +151,7 @@ static void unpackRTCP_sr(t_unpackRTCP*x){
 
   unpackRTCP_rrlist(out, SELECTOR_RTCP_SR, rtcp->r.sr.rr_count, rtcp->r.sr.rr);
 }
+/* receiver report */
 static void unpackRTCP_rr(t_unpackRTCP*x){
   t_atom ap[2];
   t_outlet*out=x->x_infoout;
@@ -160,7 +161,7 @@ static void unpackRTCP_rr(t_unpackRTCP*x){
   outlet_anything(out, SELECTOR_RTCP_RR_SSRC, 2, ap);
   unpackRTCP_rrlist(out, SELECTOR_RTCP_RR, rtcp->r.rr.rr_count, rtcp->r.rr.rr);
 }
-
+/* source description */
 static void unpackRTCP_sdes(t_unpackRTCP*x){
   t_atom ap[2];
   t_outlet*out=x->x_infoout;
@@ -170,6 +171,7 @@ static void unpackRTCP_sdes(t_unpackRTCP*x){
   outlet_anything(out, SELECTOR_RTCP_SDES_SRC, 2, ap);
   unpackRTCP_sdesitems(out, rtcp->r.sdes.item_count, rtcp->r.sdes.item);
 }
+/* goodbye */
 static void unpackRTCP_bye(t_unpackRTCP*x){
   t_atom ap[3];
   t_outlet*out=x->x_infoout;
@@ -178,11 +180,80 @@ static void unpackRTCP_bye(t_unpackRTCP*x){
   u_int32 src;
   u_int32 count=0;
 #warning FIXME handle empty SRC list
+  if(!srcs)return;
   while((src=(*srcs++))) {
     SETFLOAT (ap+0, count++);
     SETUINT32(ap+1, src);
     outlet_anything(out, SELECTOR_RTCP_BYE, 3, ap);
   }
+}
+static void unpackRTCP_rtpfb(t_unpackRTCP*x){
+  u_int32 i;
+  t_atom ap[4];
+  t_outlet*out=x->x_infoout;
+  rtcp_common_rtpfb_t*rtpfb=&x->x_rtcpheader.r.rtpfb;
+  rtcp_rtpfb_common_nack_t*nacks=&rtpfb->nack;
+#warning FIXME
+  /*
+    generic NACK:
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |            PID                |             BLP               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+   PID(16): RTP sequence number of the lost packet
+   BLP(16):
+  */
+  SETSYMBOL(ap+0, SELECTOR_RTCP_RTPFB_NACK);
+
+  SETSYMBOL(ap+1, SELECTOR_RTCP_RTPFB_SENDER_SSRC);
+  SETUINT32(ap+2, rtpfb->sender_ssrc);
+  outlet_anything(out, SELECTOR_RTCP_RTPFB, 4, ap);
+
+  SETSYMBOL(ap+1, SELECTOR_RTCP_RTPFB_MEDIA_SSRC);
+  SETUINT32(ap+2, rtpfb->media_ssrc);
+  outlet_anything(out, SELECTOR_RTCP_RTPFB, 4, ap);
+
+  for(i=0; i<nacks->nack_count; i++) {
+    SETFLOAT (ap+1, i);
+    SETUINT16(ap+2, nacks->nack[i].pid);
+    SETUINT16(ap+3, nacks->nack[i].blp);
+
+    outlet_anything(out, SELECTOR_RTCP_RTPFB, 4, ap);
+  }
+}
+static void unpackRTCP_psfb(t_unpackRTCP*x){
+  t_outlet*out=x->x_infoout;
+  rtcp_t*rtcp=&x->x_rtcpheader;
+#warning FIXME
+  /*
+    FCI:PLI
+     PLI does not require parameters.  Therefore, the length field MUST be
+     2, and there MUST NOT be any Feedback Control Information.
+
+    FCI:SLI
+    The FCI field MUST contain at least one and MAY contain more than one SLI.
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |            First        |        Number           | PictureID |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+   First(13): The macroblock (MB) address of the first lost macroblock (upperleft=1)
+   Number(13): The number of lost macroblocks, in scan order as discussed above.
+   PicID(6):
+
+    FCI:RPSI
+    There MUST be exactly one RPSI contained in the FCI field.
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |      PB       |0| Payload Type|    Native RPSI bit string     |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |   defined per codec          ...                | Padding (0) |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  */
 }
 
 static void unpackRTCP_rtcp(t_unpackRTCP*x){
@@ -215,7 +286,29 @@ static void unpackRTCP_rtcp(t_unpackRTCP*x){
   outlet_anything(out, SELECTOR_RTCP_HEADER_TYPE, 1, ap);
 
   SETFLOAT(ap+0, rtcp->count);
-  outlet_anything(out, SELECTOR_RTCP_HEADER_COUNT, 1, ap);
+  switch(type) {
+  case RTCP_RTPFB:
+    switch(rtcp->count) {
+    case RTCP_RTPFB_NACK: SETSYMBOL(ap+0, SELECTOR_RTCP_RTPFB_NACK); break;
+    default             : SETFLOAT (ap+0, rtcp->count);
+    }
+    outlet_anything(out, SELECTOR_RTCP_HEADER_FORMAT, 1, ap);
+    break;
+  case RTCP_PSFB:
+    switch(rtcp->count) {
+    case RTCP_PSFB_PLI : SETSYMBOL(ap+0, SELECTOR_RTCP_PSFB_PLI ); break;
+    case RTCP_PSFB_SLI : SETSYMBOL(ap+0, SELECTOR_RTCP_PSFB_SLI ); break;
+    case RTCP_PSFB_RPSI: SETSYMBOL(ap+0, SELECTOR_RTCP_PSFB_RPSI); break;
+    case RTCP_PSFB_AFB : SETSYMBOL(ap+0, SELECTOR_RTCP_PSFB_AFB ); break;
+    default            : SETFLOAT (ap+0, rtcp->count);
+    }
+    outlet_anything(out, SELECTOR_RTCP_HEADER_FORMAT, 1, ap);
+    break;
+
+  default:
+    outlet_anything(out, SELECTOR_RTCP_HEADER_COUNT, 1, ap);
+    break;
+  }
 
   switch(type) {
   case(RTCP_SR):
@@ -232,6 +325,12 @@ static void unpackRTCP_rtcp(t_unpackRTCP*x){
     break;
   case(RTCP_APP):
     //unpackRTCP_app(x);
+    break;
+  case(RTCP_RTPFB):
+    unpackRTCP_rtpfb(x);
+    break;
+  case(RTCP_PSFB):
+    unpackRTCP_psfb(x);
     break;
   }
 }

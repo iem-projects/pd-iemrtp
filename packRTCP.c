@@ -115,9 +115,24 @@ static void packRTCP_pt(t_packRTCP *x, t_symbol*s, int argc, t_atom*argv) {
 static void packRTCP_app(t_packRTCP *x, t_symbol*s, int UNUSED(argc), t_atom* UNUSED(argv)) {
   pd_error(x, "'%s' type currently unsupported", s->s_name);
 }
-static void packRTCP_count(t_packRTCP *x, t_symbol*s, int UNUSED(argc), t_atom* UNUSED(argv)) {
-#warning FIXXME
-  pd_error(x, "'%s' currently unsupported", s->s_name);
+static void packRTCP_count(t_packRTCP *x, t_symbol*s, int argc, t_atom* argv) {
+  rtcp_t*rtcp=&x->x_rtcp;
+  switch(rtcp->common.pt) {
+  case(RTCP_RTPFB): case(RTCP_PSFB): if(argc) {
+    int pt=atom_getint(argv);
+    if(pt>30) {
+      pd_error(x, "'%s': invalid format %d", s->s_name, pt);
+      return;
+    }
+    rtcp->common.count=pt;
+#warning FIXME - check whether the argument is valid
+  } else {
+    post("'%s': %d", rtcp->common.count);
+  }
+    break;
+  default:
+    pd_error(x, "'%s' only supported for RTPFB/PSFB packets", s->s_name);
+  }
 }
 
 int setRR(rtcp_rr_t*rr, int argc, t_atom*argv) {
@@ -277,7 +292,38 @@ static void packRTCP_bye(t_packRTCP *x, t_symbol*s, int argc, t_atom*argv) {
   }
 }
 
+static void packRTCP_rtpfb(t_packRTCP *x, t_symbol*s0, int argc, t_atom*argv) {
+  iemrtp_rtcp_changetype(&x->x_rtcp, RTCP_RTPFB);
+  if(argc>0) {
+    t_symbol*s1=atom_getsymbol(argv);
+    argv++; argc--;
+    if(SELECTOR_RTCP_RTPFB_NACK == s1) {
+      if(3==argc) {
+        int index=atom_getint(argv+0);
+        int pid  =atom_getint(argv+1);
+        int blp  =atom_getint(argv+2);
+        if(index>=MAX_RTPFB_NACK_COUNT) {
+          pd_error(x, "%s/%s index (%d) must not be larger than %d",
+                   s0->s_name, s1->s_name,
+                   index, MAX_RTPFB_NACK_COUNT);
+        } else {
 
+        }
+      } else {
+        pd_error(x, "syntax: %s %s <index> <pid> <blp>", s0->s_name, s1->s_name);
+      }
+    }
+
+  } else
+  pd_error(x, "syntax: %s <field> <VAL>...", s0->s_name);
+}
+static void packRTCP_psfb(t_packRTCP *x, t_symbol*s, int argc, t_atom*argv) {
+  iemrtp_rtcp_changetype(&x->x_rtcp, RTCP_PSFB);
+  if(argc>2) {
+
+  } else
+  pd_error(x, "syntax: %s <field> <VALhi> <VALlo>", s->s_name);
+}
 static t_packRTCP *packRTCP_new(void)
 {
   t_packRTCP *x = (t_packRTCP *)pd_new(packRTCP_class);
@@ -313,4 +359,6 @@ void packRTCP_setup(void)
   class_addmethod(packRTCP_class, (t_method)packRTCP_bye,     SELECTOR_RTCP_BYE,     A_GIMME, 0);
   class_addmethod(packRTCP_class, (t_method)packRTCP_app,     SELECTOR_RTCP_APP,     A_GIMME, 0);
 
+  class_addmethod(packRTCP_class, (t_method)packRTCP_rtpfb,   SELECTOR_RTCP_RTPFB,   A_GIMME, 0);
+  class_addmethod(packRTCP_class, (t_method)packRTCP_psfb,    SELECTOR_RTCP_PSFB,    A_GIMME, 0);
 }
