@@ -22,11 +22,13 @@
 #define RTP_MAX_SDES 255      /* maximum text length for SDES */
 
 typedef enum {
-  RTCP_SR   = 200,
-  RTCP_RR   = 201,
-  RTCP_SDES = 202,
-  RTCP_BYE  = 203,
-  RTCP_APP  = 204
+  RTCP_SR   = 200, /* Sender Report */
+  RTCP_RR   = 201, /* Receiver Report */
+  RTCP_SDES = 202, /* Source DEScription */
+  RTCP_BYE  = 203, /* GoodBYE */
+  RTCP_APP  = 204, /* APPlication specific */
+  RTCP_RTPFB= 205, /* Transport layer FB message */
+  RTCP_PSFB = 206, /* Payload-specific FB message */
 } rtcp_type_t;
 
 typedef enum {
@@ -46,6 +48,7 @@ typedef enum {
 #define SELECTOR_RTCP_HEADER_P        gensym("padding")
 #define SELECTOR_RTCP_HEADER_COUNT    gensym("count")
 #define SELECTOR_RTCP_HEADER_TYPE     gensym("type")
+#define SELECTOR_RTCP_HEADER_FORMAT   gensym("format")
 
 #define SELECTOR_RTCP_RR          gensym("RR")
 #define SELECTOR_RTCP_RR_SSRC     gensym("SSRC")
@@ -81,6 +84,33 @@ typedef enum {
 #define SELECTOR_RTCP_BYE_SRC    gensym("SRC")
 
 #define SELECTOR_RTCP_APP        gensym("APP")
+
+
+#define SELECTOR_RTCP_RTPFB      gensym("RTPFB")
+#define SELECTOR_RTCP_RTPFB_NACK gensym("NACK")
+#define SELECTOR_RTCP_RTPFB_SENDER_SSRC gensym("senderSSRC")
+#define SELECTOR_RTCP_RTPFB_MEDIA_SSRC gensym("mediaSSRC")
+
+typedef enum {
+  RTCP_RTPFB_NACK = 1,  /* Not ACKnowledged */
+  RTCP_RTPFB_X    = 31, /* for future expansion of the ID number space */
+  /* the values 0, 2..30 are unassigned FMTs */
+} rtcp_rtpfb_type_t;
+
+
+#define SELECTOR_RTCP_PSFB       gensym("PSFB")
+#define SELECTOR_RTCP_PSFB_PLI   gensym("PLI")
+#define SELECTOR_RTCP_PSFB_SLI   gensym("SLI")
+#define SELECTOR_RTCP_PSFB_RPSI  gensym("RPSI")
+#define SELECTOR_RTCP_PSFB_AFB   gensym("AFB")
+typedef enum {
+ RTCP_PSFB_PLI  =  1, /* Picture Loss Indication (PLI) */
+ RTCP_PSFB_SLI  =  2, /* Slice Loss Indication (SLI) */
+ RTCP_PSFB_RPSI =  3, /* Reference Picture Selection Indication (RPSI) */
+ RTCP_PSFB_AFB  = 15, /* Application layer FB (AFB) message */
+ RTCP_PSFB_X    = 31, /* reserved for future expansion of the sequence number space */
+ /* other values between 0..30 are unassigned FMTs */
+} rtcp_psfb_type_t;
 
 /*
  * RTCP common header word
@@ -143,6 +173,52 @@ typedef struct  rtcp_common_bye_ {
 
   /* can't express trailing text for reason */
 } rtcp_common_bye_t;
+
+
+typedef struct rtcp_rtpfb_nack_ {
+  unsigned int pid:16;
+  unsigned int blp:16;
+}  rtcp_rtpfb_nack_t;
+typedef struct rtcp_rtpfb_common_nack {
+#define MAX_RTPFB_NACK_COUNT (65536-2)
+  rtcp_rtpfb_nack_t*nack;
+  u_int32           nack_count;
+} rtcp_rtpfb_common_nack_t;
+
+typedef struct  rtcp_psfb_sli_ {
+  unsigned int first:13;
+  unsigned int number:13;
+  unsigned int pictureid:6;
+}  rtcp_psfb_sli_t;
+typedef struct rtcp_psfb_common_sli_ {
+  rtcp_psfb_sli_t*sli;
+  u_int32         sli_count;
+} rtcp_psfb_common_sli_t;
+
+typedef struct  rtcp_psfb_rpsi_ {
+  unsigned int pb:8;
+  unsigned int zero:1;
+  unsigned char pt:7;
+  unsigned char*data;
+  u_int32       data_count;
+}  rtcp_psfb_rpsi_t;
+
+typedef struct {
+  u_int32 sender_ssrc; /* receiver generating this report */
+  u_int32  media_ssrc; /* SSRC of the media we send info about (remote) */
+  rtcp_rtpfb_common_nack_t nack;
+} rtcp_common_rtpfb_t;
+typedef union {
+  rtcp_psfb_common_sli_t sli;
+  rtcp_psfb_rpsi_t rpsi;
+} rtcp_psfb_common_t;
+typedef struct {
+  u_int32 sender_ssrc;
+  u_int32  media_ssrc;
+  rtcp_psfb_common_t psfb;
+} rtcp_common_psfb_t;
+
+
 /*
  * One RTCP packet
  */
@@ -160,6 +236,11 @@ typedef struct {
 
     /* BYE */
     rtcp_common_bye_t bye;
+
+    /* RTP feedback (RTPFB) */
+    rtcp_common_rtpfb_t rtpfb;
+    /* payload specific feedback (PSFB) */
+    rtcp_common_psfb_t psfb;
   } r;
 } rtcp_t;
 
