@@ -140,6 +140,35 @@ void iemrtp_rtcp_freemembers(rtcp_t*x) {
     if(x->r.sr.rr)freebytes(x->r.sr.rr, x->r.sr.rr_count*sizeof(rtcp_rr_t));
     x->r.sr.rr=NULL;  x->r.sr.rr_count=0;
     break;
+  case(RTCP_RTPFB ):
+    switch(x->common.count) {
+    case RTCP_RTPFB_NACK:
+      if(x->r.rtpfb.nack.nack)
+        freebytes(x->r.rtpfb.nack.nack,
+                  x->r.rtpfb.nack.nack_count*sizeof(rtcp_rtpfb_nack_t));
+      x->r.rtpfb.nack.nack=NULL; x->r.rtpfb.nack.nack_count=0;
+      break;
+    default: break;
+    }
+    break;
+  case(RTCP_PSFB ):
+    switch(x->common.count) {
+    case RTCP_PSFB_PLI : break;
+    case RTCP_PSFB_SLI :
+      if(x->r.psfb.psfb.sli.sli)
+        freebytes(x->r.psfb.psfb.sli.sli,
+                  x->r.psfb.psfb.sli.sli_count*sizeof(rtcp_psfb_sli_t));
+      x->r.psfb.psfb.sli.sli=NULL; x->r.psfb.psfb.sli.sli_count=0;
+      break;
+    case RTCP_PSFB_RPSI:
+      if(x->r.psfb.psfb.rpsi.data)
+        freebytes(x->r.psfb.psfb.rpsi.data,
+                  x->r.psfb.psfb.rpsi.data_count*sizeof(rtcp_psfb_rpsi_t));
+      x->r.psfb.psfb.rpsi.data=NULL; x->r.psfb.psfb.rpsi.data_count=0;
+    case RTCP_PSFB_AFB : /* ??? */
+      error("hmm, how to free PSFB/AFB ???");
+    default: break;
+    }
   }
 }
 
@@ -242,8 +271,6 @@ static u_int32 atoms2rtcp_sdes(rtcp_sdes_t*x, u_int32 argc, t_atom*argv) {
   return argc; /* datalengths+4 */
 }
 
-
-
 static u_int32 atoms2rtcp_bye(rtcp_common_bye_t*x, u_int32 argc, t_atom*argv) {
   u_int32 f, frames = (argc/4);
   if(frames*4 != argc) {
@@ -257,6 +284,17 @@ static u_int32 atoms2rtcp_bye(rtcp_common_bye_t*x, u_int32 argc, t_atom*argv) {
   }
   return argc;
 }
+
+static u_int32 atoms2rtcp_rtpfb(rtcp_common_rtpfb_t*x, u_int32 argc, t_atom*argv) {
+  post("RTPFB %d", argc);
+  return -argc;
+}
+static u_int32 atoms2rtcp_psfb(rtcp_common_psfb_t*x, u_int32 argc, t_atom*argv) {
+  post("PSFB %d", argc);
+  return -argc;
+}
+
+
 int iemrtp_atoms2rtcp(int argc, t_atom*argv, rtcp_t*x) {
   u_int8 b;
   int retval=4;
@@ -291,6 +329,12 @@ int iemrtp_atoms2rtcp(int argc, t_atom*argv, rtcp_t*x) {
     break;
   case(RTCP_BYE):
     retval+=atoms2rtcp_bye(&(x->r.bye), length*4, argv+4);
+    break;
+  case(RTCP_RTPFB):
+    retval+=atoms2rtcp_rtpfb(&(x->r.rtpfb), length*4, argv+4);
+    break;
+  case(RTCP_PSFB):
+    retval+=atoms2rtcp_psfb(&(x->r.psfb), length*4, argv+4);
     break;
   case(RTCP_APP):
     /* atoms2rtcp_app(&(x->r.app), length*4, argv+4); */
@@ -348,6 +392,26 @@ int iemrtp_rtcp2atoms(const rtcp_t*x, int argc, t_atom*ap) {
   case(RTCP_BYE ):
     reqbytes+=4*x->r.bye.src_count;
     break;
+  case(RTCP_RTPFB):
+    switch(x->common.count) {
+    case RTCP_RTPFB_NACK: reqbytes+=4*(2+x->r.rtpfb.nack.nack_count); break;
+    default: return 0;
+    }
+    break;
+  case(RTCP_PSFB):
+    switch(x->common.count) {
+    case RTCP_PSFB_PLI : reqbytes+=4*2; break;
+    case RTCP_PSFB_SLI : reqbytes+=4*(2+x->r.psfb.psfb.sli.sli_count); break;
+    case RTCP_PSFB_RPSI: {
+      u_int32 datacount=x->r.psfb.psfb.rpsi.data_count + (6-(x->r.psfb.psfb.rpsi.data_count % 4))%4 ;
+      reqbytes+=4*(2 + datacount);
+    }
+      break;
+#warning FIXME AFB
+    case RTCP_PSFB_AFB : reqbytes+=4*(2); break;
+    default: return 0;
+    }
+    break;
   default:
   case(RTCP_APP ):
     return 0;
@@ -391,6 +455,57 @@ int iemrtp_rtcp2atoms(const rtcp_t*x, int argc, t_atom*ap) {
   case(RTCP_BYE ):
     for(i=0; i<x->r.bye.src_count; i++)
       ap+=atombytes_setU32(x->r.bye.src[i]       , ap);
+    break;
+  case(RTCP_RTPFB):
+    ap+=atombytes_setU32(x->r.rtpfb.sender_ssrc, ap);
+    ap+=atombytes_setU32(x->r.rtpfb.media_ssrc , ap);
+    switch(x->common.count) {
+    case RTCP_RTPFB_NACK:
+      for(i=0; i<x->r.rtpfb.nack.nack_count; i++) {
+        rtcp_rtpfb_nack_t nack=x->r.rtpfb.nack.nack[i];
+        ap+=atombytes_setU16(nack.pid, ap);
+        ap+=atombytes_setU16(nack.blp, ap);
+      }
+      break;
+    default:
+      return 0;
+    }
+    break;
+  case(RTCP_PSFB):
+    ap+=atombytes_setU32(x->r.psfb.sender_ssrc, ap);
+    ap+=atombytes_setU32(x->r.psfb.media_ssrc , ap);
+    switch(x->common.count) {
+    case RTCP_PSFB_PLI: break;
+    case RTCP_PSFB_SLI:
+      for(i=0; i<x->r.psfb.psfb.sli.sli_count; i++) {
+        rtcp_psfb_sli_t sli=x->r.psfb.psfb.sli.sli[i];
+        b=(sli.first>>5);
+        ap++->a_w.w_float=b;
+        b=(sli.first << 3) | (sli.number >> 10);
+        ap++->a_w.w_float=b;
+        b=(sli.number >> 2) & 0xFF;
+        ap++->a_w.w_float=b;
+        b=(sli.number << 6) | sli.pictureid;
+        ap++->a_w.w_float=b;
+      }
+      break;
+    case RTCP_PSFB_RPSI: {
+      const rtcp_psfb_rpsi_t*rpsi=&x->r.psfb.psfb.rpsi;
+      u_int32 datacount=x->r.psfb.psfb.rpsi.data_count;
+      u_int32 extrabytes=(6-(x->r.psfb.psfb.rpsi.data_count % 4))%4;
+      unsigned char*data=x->r.psfb.psfb.rpsi.data;
+      ap++->a_w.w_float=rpsi->pb+extrabytes*8;
+      ap++->a_w.w_float=rpsi->pt; /* 'zero' is automatic, since pt is only 7bit wide */
+
+      for(i=0; i<datacount; i++)
+        ap++->a_w.w_float = *data++;
+      for(i=0; i<extrabytes; i++)
+        ap++->a_w.w_float = 0;
+    }
+      break;
+    case RTCP_PSFB_AFB:
+    default: return 0;
+    }
     break;
   default:
     return 0;
