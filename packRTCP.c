@@ -181,6 +181,13 @@ int setSDES(rtcp_sdes_item_t*item, int argc, t_atom*argv) {
   return 1;
 }
 
+int setNACK(rtcp_rtpfb_nack_t*nack, int argc, t_atom*argv) {
+  if(argc<2)return 0;
+  nack->pid = atom_getintarg(0, argc, argv);
+  nack->blp = atom_getintarg(1, argc, argv);
+  return 1;
+}
+
 
 static void packRTCP_sr(t_packRTCP *x, t_symbol*s, int argc, t_atom*argv) {
   iemrtp_rtcp_changetype(&x->x_rtcp, RTCP_SR);
@@ -295,23 +302,25 @@ static void packRTCP_bye(t_packRTCP *x, t_symbol*s, int argc, t_atom*argv) {
 static void packRTCP_rtpfb(t_packRTCP *x, t_symbol*s0, int argc, t_atom*argv) {
   iemrtp_rtcp_changetype(&x->x_rtcp, RTCP_RTPFB);
   if(argc>0) {
-    t_symbol*s1=atom_getsymbol(argv);
+    const t_symbol*s1=atom_getsymbol(argv);
     argv++; argc--;
     if(SELECTOR_RTCP_RTPFB_NACK == s1) {
       if(3==argc) {
         int index=atom_getint(argv+0);
-        int pid  =atom_getint(argv+1);
-        int blp  =atom_getint(argv+2);
-        if(index>=MAX_RTPFB_NACK_COUNT) {
+        if(iemrtp_rtcp_ensureNACK(&x->x_rtcp, index+1) && setNACK(x->x_rtcp.r.rtpfb.nack.nack+index, argc-1, argv+1)) {
+        } else {
           pd_error(x, "%s/%s index (%d) must not be larger than %d",
                    s0->s_name, s1->s_name,
                    index, MAX_RTPFB_NACK_COUNT);
-        } else {
-
         }
+
       } else {
         pd_error(x, "syntax: %s %s <index> <pid> <blp>", s0->s_name, s1->s_name);
       }
+    } else if (SELECTOR_RTCP_RTPFB_SENDER_SSRC == s1) {
+      x->x_rtcp.r.rtpfb.sender_ssrc = GETUINT32(argc, argv);
+    } else if (SELECTOR_RTCP_RTPFB_MEDIA_SSRC == s1) {
+      x->x_rtcp.r.rtpfb.media_ssrc = GETUINT32(argc, argv);
     }
 
   } else
