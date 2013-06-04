@@ -437,7 +437,7 @@ RTCP_ENSURE(RR,   rr.rr,     rtcp_rr_t,        0, 0);
 RTCP_ENSURE(SR,   sr.rr,     rtcp_rr_t,        0, 0);
 RTCP_ENSURE(SDES, sdes.item, rtcp_sdes_item_t, 0, 0);
 RTCP_ENSURE(BYE,  bye.src,   u_int32,          0, 0);
-
+RTCP_ENSURE(NACK, rtpfb.nack.nack, rtcp_rtpfb_nack_t, 0, MAX_RTPFB_NACK_COUNT);
 
 
 /* ======================================================== */

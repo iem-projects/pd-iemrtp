@@ -309,3 +309,6 @@ int iemrtp_rtcp_ensureSDES(rtcp_t*rtcp, int size);
 /* make sure that at least <size> elements can fit into the rtcp.r.bye struct
  */
 int iemrtp_rtcp_ensureBYE(rtcp_t*rtcp, int size);
+/* make sure that at least <size> elements can fit into the rtcp.r.nack struct
+ */
+int iemrtp_rtcp_ensureNACK(rtcp_t*rtcp, int size);
