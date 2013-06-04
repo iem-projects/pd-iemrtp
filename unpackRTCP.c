@@ -216,16 +216,18 @@ static void unpackRTCP_rtpfb(t_unpackRTCP*x){
   outlet_anything(out, SELECTOR_RTCP_RTPFB, 4, ap);
 
   for(i=0; i<nacks->nack_count; i++) {
-    SETFLOAT (ap+1, i);
-    SETUINT16(ap+2, nacks->nack[i].pid);
-    SETUINT16(ap+3, nacks->nack[i].blp);
+    SETFLOAT(ap+1, i);
+    SETFLOAT(ap+2, nacks->nack[i].pid);
+    SETFLOAT(ap+3, nacks->nack[i].blp);
 
     outlet_anything(out, SELECTOR_RTCP_RTPFB, 4, ap);
   }
 }
 static void unpackRTCP_psfb(t_unpackRTCP*x){
+#if 0
   t_outlet*out=x->x_infoout;
   rtcp_t*rtcp=&x->x_rtcpheader;
+#endif
 #warning FIXME
   /*
     FCI:PLI
