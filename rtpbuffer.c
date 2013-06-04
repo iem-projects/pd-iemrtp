@@ -121,17 +121,19 @@ static void rtpbuffer_freepackets(t_rtpbuffer*x) {
   outlet_anything(x->x_infout, gensym("size"), 1, ap);
 }
 
-
+#if 0
 static t_rtpbuffer_packet* UNUSED_FUNCTION(packet_matchTS)(t_rtpbuffer_packet*pkt, const u_int32 timestamp) {
   if((timestamp >= pkt->timestamp) && (timestamp <= pkt->stopstamp)) return pkt;
   return NULL;
 }
+#endif
 
 static t_rtpbuffer_packet* packet_matchTSrange(t_rtpbuffer_packet*pkt, const u_int32 ts0, u_int32 ts1) {
   if((ts0 <= pkt->stopstamp) && (pkt->timestamp <= ts1)) return pkt;
   return NULL;
 }
 
+#if 0
 /* returns the given packet if it has data after timestamp */
 static t_rtpbuffer_packet* packet_afterTS(t_rtpbuffer_packet*pkt, const u_int32 timestamp) {
   if(pkt->timestamp>=timestamp)return pkt;
@@ -142,31 +144,27 @@ static t_rtpbuffer_packet* packet_afterTS(t_rtpbuffer_packet*pkt, const u_int32 
   if(pkt->stopstamp>=timestamp)return pkt;
   return NULL;
 }
+#endif
 
 
-
-
+/* query by timestamp number */
 static void rtpbuffer_queryTS(t_rtpbuffer*x, const u_int32 ts0, const u_int32 ts1){
   t_rtpbuffer_packet*pkt=NULL;
-  /* find packet with matching timestamp */
-  t_rtpbuffer_packet*buf;
-
-  for(buf=x->x_start; buf; buf=buf->next) {
-    pkt=packet_afterTS(buf, ts0);
-    if(pkt)break;
-  }
-
-  /* and output them */
-  if(pkt) {
-    for(buf=pkt; buf && buf->timestamp<=ts1; buf=buf->next) {
-      if(NULL!=packet_matchTSrange(buf, ts0, ts1))
-        rtpbuffer_pktout(x, buf);
-    }
+  for(pkt=x->x_start; pkt; pkt=pkt->next) {
+    if(NULL!=packet_matchTSrange(pkt, ts0, ts1))
+      rtpbuffer_pktout(x, pkt);
   }
 }
-
-static void rtpbuffer_query(t_rtpbuffer*x, t_symbol* UNUSED(s), int argc, t_atom*argv) {
+/* args:
+ *  - TShi TSlo: query all packets containing TS (=TShi<<16 + TSlo)
+ *  - TS0hi TS0lo TS1hi TS1lo: query all packets with TS: TS0<=TS<=TS1
+ */
+static void rtpbuffer_queryTSmsg(t_rtpbuffer*x, t_symbol* UNUSED(s), int argc, t_atom*argv) {
   u_int32 ts0, ts1;
+  if(!argc) {
+    pd_error(x, "queryTS <TShi> <TSlo>...");
+    return;
+  }
   ts0=GETUINT32(argc<2?argc:2, argv);
   if(argc>2)
     ts1=GETUINT32(argc-2, argv+2);
@@ -174,6 +172,12 @@ static void rtpbuffer_query(t_rtpbuffer*x, t_symbol* UNUSED(s), int argc, t_atom
     ts1=ts0;
   rtpbuffer_queryTS(x, ts0, ts1);
 }
+
+#if 0
+/* query by sequence number */
+static void rtpbuffer_queryMsg(t_rtpbuffer*x, t_symbol* UNUSED(s), int argc, t_atom*argv) {
+}
+#endif
 
 /* add a new packet to the buffer */
 static void rtpbuffer_list(t_rtpbuffer*x, t_symbol* UNUSED(s), int argc, t_atom*argv) {
@@ -271,5 +275,5 @@ void rtpbuffer_setup(void)
   /* query <TShi> <TSlo>: output packet for TS
    * query <TS0hi> <TS0lo> <TS1hi> <TS1lo>: output packets between TS0 and TS1 (incl.)
    */
-  class_addmethod(rtpbuffer_class, (t_method)rtpbuffer_query, gensym("query"), A_GIMME);
+  class_addmethod(rtpbuffer_class, (t_method)rtpbuffer_queryTSmsg, gensym("queryTS"), A_GIMME);
 }
