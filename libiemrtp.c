@@ -285,12 +285,91 @@ static u_int32 atoms2rtcp_bye(rtcp_common_bye_t*x, u_int32 argc, t_atom*argv) {
   return argc;
 }
 
-static u_int32 atoms2rtcp_rtpfb(rtcp_common_rtpfb_t*x, u_int32 argc, t_atom*argv) {
-  post("RTPFB %d", argc);
+static u_int32 atoms2rtcp_rtpfb(rtcp_t*rtcp, const rtcp_rtpfb_type_t fmt, rtcp_common_rtpfb_t*x, u_int32 argc, t_atom*argv) {
+  switch(fmt) {
+  case RTCP_RTPFB_NACK: do {
+      u_int32 numnacks = (argc-8) >> 2;
+      u_int32 i;
+      if(argc<8)
+        return -argc;
+
+      x->sender_ssrc = atombytes_getU32(argv+0);
+      x->media_ssrc  = atombytes_getU32(argv+4);
+      argv+=8;
+      argc-=8;
+      if(iemrtp_rtcp_ensureNACK(rtcp, numnacks))
+        for(i=0; i<numnacks; i++) {
+          x->nack.nack[i].pid=atombytes_getU16(argv+0);
+          x->nack.nack[i].blp=atombytes_getU16(argv+2);
+          argv+=4;
+        }
+      return  8 + (numnacks<<2);
+    } while(0);
+    break;
+  default:break;
+  }
   return -argc;
 }
-static u_int32 atoms2rtcp_psfb(rtcp_common_psfb_t*x, u_int32 argc, t_atom*argv) {
+
+static u_int32 atoms2rtcp_psfb(rtcp_t*rtcp, const rtcp_psfb_type_t fmt, rtcp_common_psfb_t*x, u_int32 argc, t_atom*argv) {
   post("PSFB %d", argc);
+  switch(fmt) {
+  case RTCP_PSFB_PLI :
+    if(argc!=8)return -argc;
+    x->sender_ssrc = atombytes_getU32(argv+0);
+    x->media_ssrc  = atombytes_getU32(argv+4);
+    return 8;
+  case RTCP_PSFB_SLI :do {
+      u_int32 numsli = (argc-8) >> 2;
+      u_int32 i;
+      if(argc<12)
+        return -argc;
+
+      x->sender_ssrc = atombytes_getU32(argv+0);
+      x->media_ssrc  = atombytes_getU32(argv+4);
+      argv+=8;
+      argc-=8;
+      if(iemrtp_rtcp_ensureSLI(rtcp, numsli))
+        for(i=0; i<numsli; i++) {
+          unsigned char a, b, c, d;
+          a=atom_getint(argv+0);
+          b=atom_getint(argv+1);
+          c=atom_getint(argv+2);
+          d=atom_getint(argv+3);
+
+          x->psfb.sli.sli[i].first     = (a<<5) | (b>>3);
+          x->psfb.sli.sli[i].number    = ((b & 0x7) << 10) | (c<<2) | ((d&0xC0)>>6);
+          x->psfb.sli.sli[i].pictureid = (d & 0x3F);
+
+          argv+=4;
+        }
+      return  8 + (numsli<<2);
+    } while(0);
+    break;
+  case RTCP_PSFB_RPSI: do {
+      u_int32 data_count = argc-2;
+      if(argc<4)
+        return -argc;
+      x->psfb.rpsi.pb = atom_getint(argv+0);
+      x->psfb.rpsi.pt = atom_getint(argv+1);
+      if (0x80 & x->psfb.rpsi.pt) // bit#9 must always be 0
+        return -argc;
+      data_count -= (x->psfb.rpsi.pb / 8);
+      if(iemrtp_rtcp_ensureRPSI(rtcp, data_count)) {
+        unsigned int bits = x->psfb.rpsi.pb % 8;
+        unsigned char bitmask = 0xFF >> (8-bits);
+        u_int32 i;
+        argv+=2;
+        for(i=0; i<data_count; i++) {
+          x->psfb.rpsi.data[i]=atom_getint(argv++);
+        }
+        x->psfb.rpsi.data[i] &= bitmask;
+      }
+    } while(0);
+    break;
+  case RTCP_PSFB_AFB :
+  default: break;
+  }
   return -argc;
 }
 
@@ -331,10 +410,10 @@ int iemrtp_atoms2rtcp(int argc, t_atom*argv, rtcp_t*x) {
     retval+=atoms2rtcp_bye(&(x->r.bye), length*4, argv+4);
     break;
   case(RTCP_RTPFB):
-    retval+=atoms2rtcp_rtpfb(&(x->r.rtpfb), length*4, argv+4);
+    retval+=atoms2rtcp_rtpfb(x, x->common.count, &(x->r.rtpfb), length*4, argv+4);
     break;
   case(RTCP_PSFB):
-    retval+=atoms2rtcp_psfb(&(x->r.psfb), length*4, argv+4);
+    retval+=atoms2rtcp_psfb (x, x->common.count, &(x->r.psfb ), length*4, argv+4);
     break;
   case(RTCP_APP):
     /* atoms2rtcp_app(&(x->r.app), length*4, argv+4); */
@@ -529,6 +608,13 @@ void iemrtp_rtcp_changetype(rtcp_t*rtcp, const rtcp_type_t pt) {
     rtcp->common.pt     =pt;
   }
 }
+int iemrtp_rtcp_ensureRPSI(rtcp_t*rtcp, u_int32 size) {
+  if(rtcp->r.psfb.psfb.rpsi.data)
+    freebytes(rtcp->r.psfb.psfb.rpsi.data, rtcp->r.psfb.psfb.rpsi.data_count );
+  rtcp->r.psfb.psfb.rpsi.data = (unsigned char*)getbytes(size);
+  rtcp->r.psfb.psfb.rpsi.data_count=(NULL==rtcp->r.psfb.psfb.rpsi.data)?0:size;
+  return (NULL!=rtcp->r.psfb.psfb.rpsi.data);
+}
 /* make sure that at least <size> elements can fit into the rtcp.r.rr struct
  * returns the size of the buffer after a possible alloc
  */
@@ -553,7 +639,7 @@ RTCP_ENSURE(SR,   sr.rr,     rtcp_rr_t,        0, 0);
 RTCP_ENSURE(SDES, sdes.item, rtcp_sdes_item_t, 0, 0);
 RTCP_ENSURE(BYE,  bye.src,   u_int32,          0, 0);
 RTCP_ENSURE(NACK, rtpfb.nack.nack, rtcp_rtpfb_nack_t, 0, MAX_RTPFB_NACK_COUNT);
-
+RTCP_ENSURE(SLI,  psfb.psfb.sli.sli, rtcp_psfb_sli_t, 0, 0);
 
 /* ======================================================== */
 
