@@ -309,6 +309,12 @@ int iemrtp_rtcp_ensureSDES(rtcp_t*rtcp, int size);
 /* make sure that at least <size> elements can fit into the rtcp.r.bye struct
  */
 int iemrtp_rtcp_ensureBYE(rtcp_t*rtcp, int size);
-/* make sure that at least <size> elements can fit into the rtcp.r.nack struct
+/* make sure that at least <size> elements can fit into the rtcp.r.rtpfb.nack struct
  */
 int iemrtp_rtcp_ensureNACK(rtcp_t*rtcp, int size);
+/* make sure that at least <size> elements can fit into the rtcp.r.rtpfb.sli struct
+ */
+int iemrtp_rtcp_ensureSLI(rtcp_t*rtcp, int size);
+/* make sure that at least <size> elements can fit into the rtcp.r.psfb.rpsi struct
+ */
+int iemrtp_rtcp_ensureRPSI(rtcp_t*rtcp, u_int32 size);
