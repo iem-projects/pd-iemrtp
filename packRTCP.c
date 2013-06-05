@@ -40,7 +40,6 @@ typedef struct _packRTCP
 
 static void packRTCP_bang(t_packRTCP *x) {
   int result = 0;
-  x->x_rtcp.common.count = 1;
   result = iemrtp_rtcp2atoms(&x->x_rtcp, x->x_buffersize, x->x_buffer);
   if(result<0) {
     u_int32 i;
