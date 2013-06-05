@@ -300,6 +300,10 @@ int iemrtp_rtcp2atoms(const rtcp_t*x, int argc, t_atom*argv);
  */
 void iemrtp_rtcp_changetype(rtcp_t*rtcp, const rtcp_type_t pt);
 
+/* parse atom into type */
+rtcp_rtpfb_type_t iemrtp_rtcp_atom2rtpfbtype(t_atom[1]);
+rtcp_psfb_type_t  iemrtp_rtcp_atom2psfbtype (t_atom[1]);
+
 /* make sure that at least <size> elements can fit into the rtcp.r.rr struct
  */
 int iemrtp_rtcp_ensureRR(rtcp_t*rtcp, int size);
