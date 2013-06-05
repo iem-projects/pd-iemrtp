@@ -102,6 +102,9 @@ typedef enum {
 #define SELECTOR_RTCP_PSFB_PLI   gensym("PLI")
 #define SELECTOR_RTCP_PSFB_SLI   gensym("SLI")
 #define SELECTOR_RTCP_PSFB_RPSI  gensym("RPSI")
+#define SELECTOR_RTCP_PSFB_RPSI_PB  gensym("padding")
+#define SELECTOR_RTCP_PSFB_RPSI_PT  gensym("pt")
+
 #define SELECTOR_RTCP_PSFB_AFB   gensym("AFB")
 typedef enum {
  RTCP_PSFB_PLI  =  1, /* Picture Loss Indication (PLI) */

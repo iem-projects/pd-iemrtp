@@ -381,6 +381,28 @@ static void packRTCP_psfb(t_packRTCP *x, t_symbol*s, int argc, t_atom*argv) {
       }
       break;
     case RTCP_PSFB_RPSI: x->x_rtcp.common.subtype = typ;
+      if(argc == 2 && A_SYMBOL == argv->a_type) {
+        /* setting payload or padding */
+        t_symbol*s2=atom_getsymbol(argv+0);
+        int value  =atom_getint   (argv+1);
+        if(SELECTOR_RTCP_PSFB_RPSI_PB == s2)
+          x->x_rtcp.r.psfb.psfb.rpsi.pb = value;
+        else if(SELECTOR_RTCP_PSFB_RPSI_PT == s2)
+          x->x_rtcp.r.psfb.psfb.rpsi.pt = value;
+        else {
+          pd_error(x, "syntax: %s %s (%s <payloadtype>) | (%s <paddingbits>) | (<bitbyte> ...)",
+                   s->s_name, s1->s_name,
+                   SELECTOR_RTCP_PSFB_RPSI_PB->s_name,
+                   SELECTOR_RTCP_PSFB_RPSI_PT->s_name
+                   );
+          return;
+        }
+      } else {
+        int i;
+        for(i=0; i<iemrtp_rtcp_ensureRPSI(&x->x_rtcp, argc); i++) {
+          x->x_rtcp.r.psfb.psfb.rpsi.data[i]=atom_getint(argv++);
+        }
+      }
     case RTCP_PSFB_AFB : x->x_rtcp.common.subtype = typ;
     default:
       pd_error(x, "invalid field-type for '%s'", s->s_name);
