@@ -404,6 +404,8 @@ static void packRTCP_psfb(t_packRTCP *x, t_symbol*s, int argc, t_atom*argv) {
         }
       }
     case RTCP_PSFB_AFB : x->x_rtcp.common.subtype = typ;
+      pd_error(x, "%s/%s not yet implemented", s->s_name, s1->s_name);
+      return;
     default:
       pd_error(x, "invalid field-type for '%s'", s->s_name);
     }
