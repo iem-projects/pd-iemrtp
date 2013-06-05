@@ -231,38 +231,47 @@ static void unpackRTCP_rtpfb(t_unpackRTCP*x){
   }
 }
 static void unpackRTCP_psfb(t_unpackRTCP*x){
-#if 0
+  t_atom ap[4];
   t_outlet*out=x->x_infoout;
   rtcp_t*rtcp=&x->x_rtcpheader;
-#endif
+  u_int32 i;
 #warning FIXME
-  /*
-    FCI:PLI
-     PLI does not require parameters.  Therefore, the length field MUST be
-     2, and there MUST NOT be any Feedback Control Information.
 
-    FCI:SLI
-    The FCI field MUST contain at least one and MAY contain more than one SLI.
-    0                   1                   2                   3
-    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |            First        |        Number           | PictureID |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  switch(rtcp->common.subtype) {
+  case RTCP_PSFB_PLI : SETSYMBOL(ap+0, SELECTOR_RTCP_PSFB_PLI );
+  case RTCP_PSFB_SLI : SETSYMBOL(ap+0, SELECTOR_RTCP_PSFB_SLI );
+  case RTCP_PSFB_RPSI: SETSYMBOL(ap+0, SELECTOR_RTCP_PSFB_RPSI);
+  case RTCP_PSFB_AFB : SETSYMBOL(ap+0, SELECTOR_RTCP_PSFB_AFB );
+  default:
+    pd_error(x, "unkown %s packet with subtype %d",
+             SELECTOR_RTCP_PSFB->s_name,
+             rtcp->common.subtype);
+    return;
+  }
+  outlet_anything(out, SELECTOR_RTCP_PSFB, 1, ap);
 
-   First(13): The macroblock (MB) address of the first lost macroblock (upperleft=1)
-   Number(13): The number of lost macroblocks, in scan order as discussed above.
-   PicID(6):
+  SETSYMBOL(ap+0,  SELECTOR_RTCP_RTPFB_SENDER_SSRC);
+  SETUINT32(ap+1,  rtcp->r.rtpfb.ssrc.sender);
+  outlet_anything(out, SELECTOR_RTCP_PSFB, 3, ap);
+  SETSYMBOL(ap+0,  SELECTOR_RTCP_RTPFB_MEDIA_SSRC);
+  SETUINT32(ap+1,  rtcp->r.rtpfb.ssrc.media);
+  outlet_anything(out, SELECTOR_RTCP_PSFB, 3, ap);
 
-    FCI:RPSI
-    There MUST be exactly one RPSI contained in the FCI field.
-    0                   1                   2                   3
-    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |      PB       |0| Payload Type|    Native RPSI bit string     |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |   defined per codec          ...                | Padding (0) |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-  */
+  switch(rtcp->common.subtype) {
+  case RTCP_PSFB_PLI : break;
+  case RTCP_PSFB_SLI :
+    SETSYMBOL(ap+0, SELECTOR_RTCP_PSFB_SLI);
+    for(i=0; i<rtcp->r.psfb.psfb.sli.sli_count; i++) {
+      SETFLOAT(ap+1, rtcp->r.psfb.psfb.sli.sli[i].first);
+      SETFLOAT(ap+2, rtcp->r.psfb.psfb.sli.sli[i].number);
+      SETFLOAT(ap+3, rtcp->r.psfb.psfb.sli.sli[i].pictureid);
+      outlet_anything(out, SELECTOR_RTCP_PSFB, 4, ap);
+    }
+    break;
+  case RTCP_PSFB_RPSI:
+  case RTCP_PSFB_AFB :
+  default: break;
+  }
 }
 
 static void unpackRTCP_rtcp(t_unpackRTCP*x){
