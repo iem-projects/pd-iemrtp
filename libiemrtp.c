@@ -716,11 +716,13 @@ void iemrtp_rtcp_psfb_changetype(rtcp_t*rtcp, const rtcp_psfb_type_t typ) {
 
 
 int iemrtp_rtcp_ensureRPSI(rtcp_t*rtcp, u_int32 size) {
+  if(size == rtcp->r.psfb.psfb.rpsi.data_count)return size;
+
   if(rtcp->r.psfb.psfb.rpsi.data)
     freebytes(rtcp->r.psfb.psfb.rpsi.data, rtcp->r.psfb.psfb.rpsi.data_count );
   rtcp->r.psfb.psfb.rpsi.data = (unsigned char*)getbytes(size);
   rtcp->r.psfb.psfb.rpsi.data_count=(NULL==rtcp->r.psfb.psfb.rpsi.data)?0:size;
-  return (NULL!=rtcp->r.psfb.psfb.rpsi.data);
+  return rtcp->r.psfb.psfb.rpsi.data_count;
 }
 /* make sure that at least <size> elements can fit into the rtcp.r.rr struct
  * returns the size of the buffer after a possible alloc
