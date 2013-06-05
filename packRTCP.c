@@ -337,6 +337,7 @@ static void packRTCP_rtpfb(t_packRTCP *x, t_symbol*s0, int argc, t_atom*argv) {
     argv++; argc--;
     switch(typ) {
     case RTCP_RTPFB_NACK:
+      if(!argc)return;
       if(3==argc) {
         int index=atom_getint(argv+0);
         if(iemrtp_rtcp_ensureNACK(&x->x_rtcp, index+1) && setNACK(x->x_rtcp.r.rtpfb.nack.nack+index, argc-1, argv+1))
