@@ -110,7 +110,7 @@ int iemrtp_atoms2rtpheader(int argc, t_atom*argv, t_rtpheader*rtpheader) {
 /* ======================================================== */
 static void iemrtp_rtcp_rtpfb_freemembers(rtcp_t*x) {
   if(x->common.pt != RTCP_RTPFB)return;
-  switch(x->common.count) {
+  switch(x->common.subtype) {
   case RTCP_RTPFB_NACK:
     if(x->r.rtpfb.nack.nack)
       freebytes(x->r.rtpfb.nack.nack,
@@ -122,7 +122,7 @@ static void iemrtp_rtcp_rtpfb_freemembers(rtcp_t*x) {
 }
 static void iemrtp_rtcp_psfb_freemembers(rtcp_t*x) {
   if(x->common.pt != RTCP_PSFB)return;
-  switch(x->common.count) {
+  switch(x->common.subtype) {
   case RTCP_PSFB_PLI : break;
   case RTCP_PSFB_SLI :
     if(x->r.psfb.psfb.sli.sli)
@@ -426,7 +426,7 @@ int iemrtp_atoms2rtcp(int argc, t_atom*argv, rtcp_t*x) {
   b=atom_getint(argv+0);
   x->common.version=(b >> 6) & 0x03;
   x->common.p      =(b >> 5) & 0x01;
-  x->common.count  =(b >> 0) & 0x1F;
+  x->common.subtype=(b >> 0) & 0x1F;
 
   b=atom_getint(argv+1);
   x->common.pt     =b;
@@ -452,10 +452,10 @@ int iemrtp_atoms2rtcp(int argc, t_atom*argv, rtcp_t*x) {
     retval+=atoms2rtcp_bye(&(x->r.bye), length*4, argv+4);
     break;
   case(RTCP_RTPFB):
-    retval+=atoms2rtcp_rtpfb(x, x->common.count, &(x->r.rtpfb), length*4, argv+4);
+    retval+=atoms2rtcp_rtpfb(x, x->common.subtype, &(x->r.rtpfb), length*4, argv+4);
     break;
   case(RTCP_PSFB):
-    retval+=atoms2rtcp_psfb (x, x->common.count, &(x->r.psfb ), length*4, argv+4);
+    retval+=atoms2rtcp_psfb (x, x->common.subtype, &(x->r.psfb ), length*4, argv+4);
     break;
   case(RTCP_APP):
     /* atoms2rtcp_app(&(x->r.app), length*4, argv+4); */
@@ -485,23 +485,23 @@ STATIC_INLINE int RTCPatombytes_fromSDES(rtcp_sdes_item_t*item, t_atom*ap) {
 int iemrtp_rtcp_fixsubtype(rtcp_t*x) {
   switch(x->common.pt) {
   case RTCP_SR:
-    x->common.count = x->r.sr.rr_count;
+    x->common.subtype = x->r.sr.rr_count;
     break;
   case RTCP_RR:
-    x->common.count = x->r.rr.rr_count;
+    x->common.subtype = x->r.rr.rr_count;
     break;
   case RTCP_SDES:
-    x->common.count = x->r.sdes.item_count;
+    x->common.subtype = x->r.sdes.item_count;
     break;
   case RTCP_BYE:
-    x->common.count = x->r.bye.src_count;
+    x->common.subtype = x->r.bye.src_count;
     break;
   case RTCP_APP:
     /* meaning of 'count' is app-specific */
     break;
   case RTCP_RTPFB:
     /* should be either NACK or X (else is undefined) */
-    switch(x->common.count) {
+    switch(x->common.subtype) {
     case RTCP_RTPFB_NACK:
     case RTCP_RTPFB_X   :
       break;
@@ -510,7 +510,7 @@ int iemrtp_rtcp_fixsubtype(rtcp_t*x) {
     break;
   case RTCP_PSFB:
     /* should be either PLI, SLI, RPSI, AFB or X (else is undefined) */
-    switch(x->common.count) {
+    switch(x->common.subtype) {
     case RTCP_PSFB_PLI :
     case RTCP_PSFB_SLI :
     case RTCP_PSFB_RPSI:
@@ -557,13 +557,13 @@ int iemrtp_rtcp2atoms(const rtcp_t*x, int argc, t_atom*ap) {
     reqbytes+=4*x->r.bye.src_count;
     break;
   case(RTCP_RTPFB):
-    switch(x->common.count) {
+    switch(x->common.subtype) {
     case RTCP_RTPFB_NACK: reqbytes+=4*(2+x->r.rtpfb.nack.nack_count); break;
     default: return 0;
     }
     break;
   case(RTCP_PSFB):
-    switch(x->common.count) {
+    switch(x->common.subtype) {
     case RTCP_PSFB_PLI : reqbytes+=4*2; break;
     case RTCP_PSFB_SLI : reqbytes+=4*(2+x->r.psfb.psfb.sli.sli_count); break;
     case RTCP_PSFB_RPSI: {
@@ -586,7 +586,7 @@ int iemrtp_rtcp2atoms(const rtcp_t*x, int argc, t_atom*ap) {
   if(argc<reqbytes)return -reqbytes; /* header takes at least 4 bytes */
 
   /* write header */
-  b=(x->common.version << 6) | (x->common.p << 5) | (x->common.count);
+  b=(x->common.version << 6) | (x->common.p << 5) | (x->common.subtype);
   ap++->a_w.w_float=b;
   ap++->a_w.w_float=x->common.pt;
   if(x->common.length)
@@ -623,7 +623,7 @@ int iemrtp_rtcp2atoms(const rtcp_t*x, int argc, t_atom*ap) {
   case(RTCP_RTPFB):
     ap+=atombytes_setU32(x->r.rtpfb.ssrc.sender, ap);
     ap+=atombytes_setU32(x->r.rtpfb.ssrc.media , ap);
-    switch(x->common.count) {
+    switch(x->common.subtype) {
     case RTCP_RTPFB_NACK:
       for(i=0; i<x->r.rtpfb.nack.nack_count; i++) {
         rtcp_rtpfb_nack_t nack=x->r.rtpfb.nack.nack[i];
@@ -638,7 +638,7 @@ int iemrtp_rtcp2atoms(const rtcp_t*x, int argc, t_atom*ap) {
   case(RTCP_PSFB):
     ap+=atombytes_setU32(x->r.psfb.ssrc.sender, ap);
     ap+=atombytes_setU32(x->r.psfb.ssrc.media , ap);
-    switch(x->common.count) {
+    switch(x->common.subtype) {
     case RTCP_PSFB_PLI: break;
     case RTCP_PSFB_SLI:
       for(i=0; i<x->r.psfb.psfb.sli.sli_count; i++) {
@@ -697,21 +697,21 @@ void iemrtp_rtcp_rtpfb_changetype(rtcp_t*rtcp, const rtcp_rtpfb_type_t typ) {
   if(RTCP_RTPFB!=rtcp->common.pt) {
     iemrtp_rtcp_changetype(rtcp, RTCP_RTPFB);
   } else {
-    if(typ==rtcp->common.count)return;
+    if(typ==rtcp->common.subtype)return;
   }
   /* ssrc is common, so we don't need to change that */
   iemrtp_rtcp_rtpfb_freemembers(rtcp);
-  rtcp->common.count=typ;
+  rtcp->common.subtype=typ;
 }
 void iemrtp_rtcp_psfb_changetype(rtcp_t*rtcp, const rtcp_psfb_type_t typ) {
   if(RTCP_PSFB!=rtcp->common.pt) {
     iemrtp_rtcp_changetype(rtcp, RTCP_PSFB);
   } else {
-    if(typ==rtcp->common.count)return;
+    if(typ==rtcp->common.subtype)return;
   }
   /* ssrc is common, so we don't need to change that */
   iemrtp_rtcp_psfb_freemembers(rtcp);
-  rtcp->common.count=typ;
+  rtcp->common.subtype=typ;
 }
 
 

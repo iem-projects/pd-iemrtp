@@ -287,22 +287,22 @@ static void unpackRTCP_rtcp(t_unpackRTCP*x){
   }
   outlet_anything(out, SELECTOR_RTCP_HEADER_TYPE, 1, ap);
 
-  SETFLOAT(ap+0, rtcp->count);
+  SETFLOAT(ap+0, rtcp->subtype);
   switch(type) {
   case RTCP_RTPFB:
-    switch(rtcp->count) {
+    switch(rtcp->subtype) {
     case RTCP_RTPFB_NACK: SETSYMBOL(ap+0, SELECTOR_RTCP_RTPFB_NACK); break;
-    default             : SETFLOAT (ap+0, rtcp->count);
+    default             : SETFLOAT (ap+0, rtcp->subtype);
     }
     outlet_anything(out, SELECTOR_RTCP_HEADER_FORMAT, 1, ap);
     break;
   case RTCP_PSFB:
-    switch(rtcp->count) {
+    switch(rtcp->subtype) {
     case RTCP_PSFB_PLI : SETSYMBOL(ap+0, SELECTOR_RTCP_PSFB_PLI ); break;
     case RTCP_PSFB_SLI : SETSYMBOL(ap+0, SELECTOR_RTCP_PSFB_SLI ); break;
     case RTCP_PSFB_RPSI: SETSYMBOL(ap+0, SELECTOR_RTCP_PSFB_RPSI); break;
     case RTCP_PSFB_AFB : SETSYMBOL(ap+0, SELECTOR_RTCP_PSFB_AFB ); break;
-    default            : SETFLOAT (ap+0, rtcp->count);
+    default            : SETFLOAT (ap+0, rtcp->subtype);
     }
     outlet_anything(out, SELECTOR_RTCP_HEADER_FORMAT, 1, ap);
     break;

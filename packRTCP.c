@@ -123,10 +123,10 @@ static void packRTCP_count(t_packRTCP *x, t_symbol*s, int argc, t_atom* argv) {
       pd_error(x, "'%s': invalid format %d", s->s_name, pt);
       return;
     }
-    rtcp->common.count=pt;
+    rtcp->common.subtype=pt;
 #warning FIXME - check whether the argument is valid
   } else {
-    post("'%s': %d", rtcp->common.count);
+    post("'%s': %d", rtcp->common.subtype);
   }
     break;
   default:

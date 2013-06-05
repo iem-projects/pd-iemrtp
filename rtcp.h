@@ -118,7 +118,7 @@ typedef enum {
 typedef struct {
   unsigned int version:2;   /* protocol version */
   unsigned int p:1;         /* padding flag */
-  unsigned int count:5;     /* varies by packet type */
+  unsigned int subtype:5;   /* varies by packet type */
 
   unsigned int pt:8;        /* RTCP packet type */
 
