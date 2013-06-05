@@ -324,12 +324,14 @@ static void packRTCP_rtpfb(t_packRTCP *x, t_symbol*s0, int argc, t_atom*argv) {
   if(argc>0) {
     const t_symbol*s1=atom_getsymbol(argv);
     int typ=iemrtp_rtcp_atom2rtpfbtype(argv);
+
+    if(packRTCP_setFBSSRC(&x->x_rtcp, argc, argv))return;
     if(typ<0) {
       pd_error(x, "invalid RTPFB type '%s'", s1->s_name);
+      return;
     }
     iemrtp_rtcp_rtpfb_changetype(&x->x_rtcp, typ);
 
-    if(packRTCP_setFBSSRC(&x->x_rtcp, argc, argv))return;
     argv++; argc--;
     switch(typ) {
     case RTCP_RTPFB_NACK:
