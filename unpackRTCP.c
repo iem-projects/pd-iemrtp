@@ -193,7 +193,6 @@ static void unpackRTCP_rtpfb(t_unpackRTCP*x){
   t_outlet*out=x->x_infoout;
   rtcp_common_rtpfb_t*rtpfb=&x->x_rtcpheader.r.rtpfb;
   rtcp_rtpfb_common_nack_t*nacks=&rtpfb->nack;
-#warning FIXME
   /*
     generic NACK:
     0                   1                   2                   3
@@ -205,22 +204,30 @@ static void unpackRTCP_rtpfb(t_unpackRTCP*x){
    PID(16): RTP sequence number of the lost packet
    BLP(16):
   */
-  SETSYMBOL(ap+0, SELECTOR_RTCP_RTPFB_NACK);
+  switch(x->x_rtcpheader.common.subtype) {
+  case RTCP_RTPFB_NACK:
+    SETSYMBOL(ap+0, SELECTOR_RTCP_RTPFB_NACK);
 
-  SETSYMBOL(ap+1, SELECTOR_RTCP_RTPFB_SENDER_SSRC);
-  SETUINT32(ap+2, rtpfb->ssrc.sender);
-  outlet_anything(out, SELECTOR_RTCP_RTPFB, 4, ap);
-
-  SETSYMBOL(ap+1, SELECTOR_RTCP_RTPFB_MEDIA_SSRC);
-  SETUINT32(ap+2, rtpfb->ssrc.media);
-  outlet_anything(out, SELECTOR_RTCP_RTPFB, 4, ap);
-
-  for(i=0; i<nacks->nack_count; i++) {
-    SETFLOAT(ap+1, i);
-    SETFLOAT(ap+2, nacks->nack[i].pid);
-    SETFLOAT(ap+3, nacks->nack[i].blp);
-
+    SETSYMBOL(ap+1, SELECTOR_RTCP_RTPFB_SENDER_SSRC);
+    SETUINT32(ap+2, rtpfb->ssrc.sender);
     outlet_anything(out, SELECTOR_RTCP_RTPFB, 4, ap);
+
+    SETSYMBOL(ap+1, SELECTOR_RTCP_RTPFB_MEDIA_SSRC);
+    SETUINT32(ap+2, rtpfb->ssrc.media);
+    outlet_anything(out, SELECTOR_RTCP_RTPFB, 4, ap);
+
+    for(i=0; i<nacks->nack_count; i++) {
+      SETFLOAT(ap+1, i);
+      SETFLOAT(ap+2, nacks->nack[i].pid);
+      SETFLOAT(ap+3, nacks->nack[i].blp);
+
+      outlet_anything(out, SELECTOR_RTCP_RTPFB, 4, ap);
+    }
+    break;
+  default:
+    pd_error(x, "unkown %s packet with subtype %d",
+             SELECTOR_RTCP_RTPFB->s_name,
+             x->x_rtcpheader.common.subtype);
   }
 }
 static void unpackRTCP_psfb(t_unpackRTCP*x){
