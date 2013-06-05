@@ -171,7 +171,42 @@ void iemrtp_rtcp_freemembers(rtcp_t*x) {
     }
   }
 }
-
+rtcp_psfb_type_t  iemrtp_rtcp_atom2psfbtype (t_atom ap[1]) {
+  if(A_SYMBOL == ap->a_type) {
+    t_symbol*s=atom_getsymbol(ap);
+    if (SELECTOR_RTCP_RTPFB_NACK==s) { return RTCP_RTPFB_NACK; }
+  } else if (A_FLOAT == ap->a_type) {
+    int i=atom_getint(ap);
+    switch(i) {
+    case RTCP_RTPFB_NACK:
+      return i;
+    default:
+      break;
+    }
+  }
+  return -1;
+}
+rtcp_rtpfb_type_t iemrtp_rtcp_atom2rtpfbtype(t_atom ap[1]) {
+  if(A_SYMBOL == ap->a_type) {
+    t_symbol*s=atom_getsymbol(ap);
+    if (SELECTOR_RTCP_PSFB_PLI==s) { return RTCP_PSFB_PLI; }
+    if (SELECTOR_RTCP_PSFB_SLI==s) { return RTCP_PSFB_SLI; }
+    if (SELECTOR_RTCP_PSFB_RPSI==s) { return RTCP_PSFB_RPSI; }
+    if (SELECTOR_RTCP_PSFB_AFB==s) { return RTCP_PSFB_AFB; }
+  } else if (A_FLOAT == ap->a_type) {
+    int i=atom_getint(ap);
+    switch(i) {
+    case RTCP_PSFB_PLI:
+    case RTCP_PSFB_SLI:
+    case RTCP_PSFB_RPSI:
+    case RTCP_PSFB_AFB:
+      return i;
+    default:
+      break;
+    }
+  }
+  return -1;
+}
 
 static void atoms2rtcp_rrlist(u_int32 frames, t_atom*argv, rtcp_rr_t*x) {
   u_int32 f;
