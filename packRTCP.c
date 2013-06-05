@@ -299,36 +299,63 @@ static void packRTCP_bye(t_packRTCP *x, t_symbol*s, int argc, t_atom*argv) {
   }
 }
 
+static int packRTCP_setFBSSRC(rtcp_t*x, int argc, t_atom*argv) {
+  rtcp_common_fbsrc_t*fbsrc = NULL;
+  t_symbol*s;
+  u_int32 ssrc;
+
+  if(argc<3)return 0;
+  switch(x->common.pt) {
+  case(RTCP_RTPFB):fbsrc= &x->r.rtpfb.ssrc;break;
+  case(RTCP_PSFB ):fbsrc= &x->r.psfb .ssrc;break;
+  default: return 0;
+  }
+  s=atom_getsymbol(argv);
+  ssrc = GETUINT32(argc-1, argv+1);
+
+  if (SELECTOR_RTCP_RTPFB_SENDER_SSRC == s)     fbsrc->sender=ssrc;
+  else if (SELECTOR_RTCP_RTPFB_MEDIA_SSRC == s) fbsrc->media =ssrc;
+  else return 0;
+
+  return 1;
+}
+
 static void packRTCP_rtpfb(t_packRTCP *x, t_symbol*s0, int argc, t_atom*argv) {
   iemrtp_rtcp_changetype(&x->x_rtcp, RTCP_RTPFB);
   if(argc>0) {
     const t_symbol*s1=atom_getsymbol(argv);
+    if(packRTCP_setFBSSRC(&x->x_rtcp, argc, argv))return;
     argv++; argc--;
     if(SELECTOR_RTCP_RTPFB_NACK == s1) {
       if(3==argc) {
         int index=atom_getint(argv+0);
-        if(iemrtp_rtcp_ensureNACK(&x->x_rtcp, index+1) && setNACK(x->x_rtcp.r.rtpfb.nack.nack+index, argc-1, argv+1)) {
-        } else {
-          pd_error(x, "%s/%s index (%d) must not be larger than %d",
-                   s0->s_name, s1->s_name,
-                   index, MAX_RTPFB_NACK_COUNT);
-        }
-
-      } else {
-        pd_error(x, "syntax: %s %s <index> <pid> <blp>", s0->s_name, s1->s_name);
+        if(iemrtp_rtcp_ensureNACK(&x->x_rtcp, index+1) && setNACK(x->x_rtcp.r.rtpfb.nack.nack+index, argc-1, argv+1))
+          return;
+        pd_error(x, "%s/%s index (%d) must not be larger than %d",
+                 s0->s_name, s1->s_name,
+                 index, MAX_RTPFB_NACK_COUNT);
+        return;
       }
-    } else if (SELECTOR_RTCP_RTPFB_SENDER_SSRC == s1) {
-      x->x_rtcp.r.rtpfb.ssrc.sender = GETUINT32(argc, argv);
-    } else if (SELECTOR_RTCP_RTPFB_MEDIA_SSRC == s1) {
-      x->x_rtcp.r.rtpfb.ssrc.media = GETUINT32(argc, argv);
+      pd_error(x, "syntax: %s %s <index> <pid> <blp>", s0->s_name, s1->s_name);
+      return;
     }
-
-  } else
+  }
   pd_error(x, "syntax: %s <field> <VAL>...", s0->s_name);
 }
 static void packRTCP_psfb(t_packRTCP *x, t_symbol*s, int argc, t_atom*argv) {
   iemrtp_rtcp_changetype(&x->x_rtcp, RTCP_PSFB);
-  if(argc>2) {
+  if(argc>0) {
+    rtcp_psfb_type_t typ=iemrtp_rtcp_atom2psfbtype(argv);
+    if(packRTCP_setFBSSRC(&x->x_rtcp, argc, argv))return;
+    argv++; argc--;
+    switch(typ) {
+    case RTCP_PSFB_PLI:
+    case RTCP_PSFB_SLI:
+    case RTCP_PSFB_RPSI:
+    case RTCP_PSFB_AFB:
+    default:
+      pd_error(x, "invalid field-type for '%s'", s->s_name);
+    }
 
   } else
   pd_error(x, "syntax: %s <field> <VALhi> <VALlo>", s->s_name);
