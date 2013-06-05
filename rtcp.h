@@ -47,6 +47,7 @@ typedef enum {
 #define SELECTOR_RTCP_HEADER_VERSION  gensym("version")
 #define SELECTOR_RTCP_HEADER_P        gensym("padding")
 #define SELECTOR_RTCP_HEADER_COUNT    gensym("count")
+#define SELECTOR_RTCP_HEADER_SUBTYPE  gensym("subtype")
 #define SELECTOR_RTCP_HEADER_TYPE     gensym("type")
 #define SELECTOR_RTCP_HEADER_FORMAT   gensym("format")
 

@@ -114,20 +114,22 @@ static void packRTCP_pt(t_packRTCP *x, t_symbol*s, int argc, t_atom*argv) {
 static void packRTCP_app(t_packRTCP *x, t_symbol*s, int UNUSED(argc), t_atom* UNUSED(argv)) {
   pd_error(x, "'%s' type currently unsupported", s->s_name);
 }
-static void packRTCP_count(t_packRTCP *x, t_symbol*s, int argc, t_atom* argv) {
+static void packRTCP_subtype(t_packRTCP *x, t_symbol*s, int argc, t_atom* argv) {
   rtcp_t*rtcp=&x->x_rtcp;
+  int pt=0;
+  if(!argc) {
+    post("'%s': %d", rtcp->common.subtype);
+    return;
+  }
+
   switch(rtcp->common.pt) {
-  case(RTCP_RTPFB): case(RTCP_PSFB): if(argc) {
-    int pt=atom_getint(argv);
+  case(RTCP_RTPFB): case(RTCP_PSFB):
+    pt=atom_getint(argv);
     if(pt>30) {
       pd_error(x, "'%s': invalid format %d", s->s_name, pt);
       return;
     }
     rtcp->common.subtype=pt;
-#warning FIXME - check whether the argument is valid
-  } else {
-    post("'%s': %d", rtcp->common.subtype);
-  }
     break;
   default:
     pd_error(x, "'%s' only supported for RTPFB/PSFB packets", s->s_name);
@@ -442,7 +444,7 @@ void packRTCP_setup(void)
   class_addmethod(packRTCP_class, (t_method)packRTCP_version, SELECTOR_RTCP_HEADER_VERSION, A_GIMME, 0);
   class_addmethod(packRTCP_class, (t_method)packRTCP_p,       SELECTOR_RTCP_HEADER_P,       A_GIMME, 0);
   class_addmethod(packRTCP_class, (t_method)packRTCP_pt,      SELECTOR_RTCP_HEADER_TYPE,    A_GIMME, 0);
-  class_addmethod(packRTCP_class, (t_method)packRTCP_count,   SELECTOR_RTCP_HEADER_COUNT,   A_GIMME, 0);
+  class_addmethod(packRTCP_class, (t_method)packRTCP_subtype, SELECTOR_RTCP_HEADER_SUBTYPE, A_GIMME, 0);
 
   class_addmethod(packRTCP_class, (t_method)packRTCP_sr,      SELECTOR_RTCP_SR,      A_GIMME, 0);
   class_addmethod(packRTCP_class, (t_method)packRTCP_rr,      SELECTOR_RTCP_RR,      A_GIMME, 0);
@@ -452,4 +454,6 @@ void packRTCP_setup(void)
 
   class_addmethod(packRTCP_class, (t_method)packRTCP_rtpfb,   SELECTOR_RTCP_RTPFB,   A_GIMME, 0);
   class_addmethod(packRTCP_class, (t_method)packRTCP_psfb,    SELECTOR_RTCP_PSFB,    A_GIMME, 0);
+
+  class_addmethod(packRTCP_class, (t_method)packRTCP_subtype, SELECTOR_RTCP_HEADER_COUNT,   A_GIMME, 0);
 }
