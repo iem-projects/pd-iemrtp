@@ -366,8 +366,14 @@ static void packRTCP_psfb(t_packRTCP *x, t_symbol*s, int argc, t_atom*argv) {
     if(packRTCP_setFBSSRC(&x->x_rtcp, argc, argv))return;
     argv++; argc--;
     switch(typ) {
-    case RTCP_PSFB_PLI : x->x_rtcp.common.subtype = typ; break;
-    case RTCP_PSFB_SLI : x->x_rtcp.common.subtype = typ;
+    case RTCP_PSFB_PLI : iemrtp_rtcp_rtpfb_changetype(&x->x_rtcp, typ);
+      if(argc) {
+        pd_error(x, "%s/PLI does not take any arguments", s->s_name);
+        return;
+      }
+      break;
+    case RTCP_PSFB_SLI : iemrtp_rtcp_rtpfb_changetype(&x->x_rtcp, typ);
+      if(!argc)return;
       /* syntax: PSFB SLI <index> <first> <number> <pictureid> */
       if((argc != 4)
          || (A_FLOAT != argv[0].a_type)
@@ -384,7 +390,7 @@ static void packRTCP_psfb(t_packRTCP *x, t_symbol*s, int argc, t_atom*argv) {
         }
       }
       break;
-    case RTCP_PSFB_RPSI: x->x_rtcp.common.subtype = typ;
+    case RTCP_PSFB_RPSI: iemrtp_rtcp_rtpfb_changetype(&x->x_rtcp, typ);
       if(argc == 2 && A_SYMBOL == argv->a_type) {
         /* setting payload or padding */
         t_symbol*s2=atom_getsymbol(argv+0);
@@ -407,11 +413,11 @@ static void packRTCP_psfb(t_packRTCP *x, t_symbol*s, int argc, t_atom*argv) {
           x->x_rtcp.r.psfb.psfb.rpsi.data[i]=atom_getint(argv++);
         }
       }
-    case RTCP_PSFB_AFB : x->x_rtcp.common.subtype = typ;
+    case RTCP_PSFB_AFB : iemrtp_rtcp_rtpfb_changetype(&x->x_rtcp, typ);
       pd_error(x, "%s/%s not yet implemented", s->s_name, s1->s_name);
       return;
     default:
-      pd_error(x, "invalid field-type for '%s'", s->s_name);
+      pd_error(x, "invalid field-type '%s' for '%s'", s->s_name, s1->s_name);
     }
 
   } else
