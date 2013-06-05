@@ -482,6 +482,49 @@ STATIC_INLINE int RTCPatombytes_fromSDES(rtcp_sdes_item_t*item, t_atom*ap) {
   return 2+item->length;
 }
 
+int iemrtp_rtcp_fixsubtype(rtcp_t*x) {
+  switch(x->common.pt) {
+  case RTCP_SR:
+    x->common.count = x->r.sr.rr_count;
+    break;
+  case RTCP_RR:
+    x->common.count = x->r.rr.rr_count;
+    break;
+  case RTCP_SDES:
+    x->common.count = x->r.sdes.item_count;
+    break;
+  case RTCP_BYE:
+    x->common.count = x->r.bye.src_count;
+    break;
+  case RTCP_APP:
+    /* meaning of 'count' is app-specific */
+    break;
+  case RTCP_RTPFB:
+    /* should be either NACK or X (else is undefined) */
+    switch(x->common.count) {
+    case RTCP_RTPFB_NACK:
+    case RTCP_RTPFB_X   :
+      break;
+    default: return 0; /* unknown subtype */
+    }
+    break;
+  case RTCP_PSFB:
+    /* should be either PLI, SLI, RPSI, AFB or X (else is undefined) */
+    switch(x->common.count) {
+    case RTCP_PSFB_PLI :
+    case RTCP_PSFB_SLI :
+    case RTCP_PSFB_RPSI:
+    case RTCP_PSFB_AFB :
+    case RTCP_PSFB_X   :
+      break;
+    default: return 0; /* unknown subtype */
+    }
+    break;
+  default: return 0; /* unknown type */
+  }
+  return 1;
+}
+
 int iemrtp_rtcp2atoms(const rtcp_t*x, int argc, t_atom*ap) {
   int padding=0, reqbytes=0;
   u_int8 b;

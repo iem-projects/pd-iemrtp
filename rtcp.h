@@ -293,6 +293,13 @@ int iemrtp_atoms2rtcp(int argc, t_atom*argv, rtcp_t*x);
  */
 int iemrtp_rtcp2atoms(const rtcp_t*x, int argc, t_atom*argv);
 
+/**
+ * @brief make sure that the subtype field for the RTCP-packet is valid
+ * @param RTCP struct to be checked (and fixed if needed/possible)
+ * @return TRUE is the subtype field is now valid (FALSE if we don't know)
+ */
+int iemrtp_rtcp_fixsubtype(rtcp_t*x);
+
 
 /* change the type of the RTCP packet,
  * freeing ressources no longer needed
