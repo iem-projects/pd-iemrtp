@@ -178,7 +178,7 @@ void iemrtp_rtcp_freemembers(rtcp_t*x) {
     break;
   }
 }
-int iemrtp_rtcp_atom2psfbtype (t_atom ap[1]) {
+int iemrtp_rtcp_atom2rtpfbtype (t_atom ap[1]) {
   if(A_SYMBOL == ap->a_type) {
     t_symbol*s=atom_getsymbol(ap);
     if (SELECTOR_RTCP_RTPFB_NACK==s) { return RTCP_RTPFB_NACK; }
@@ -193,7 +193,7 @@ int iemrtp_rtcp_atom2psfbtype (t_atom ap[1]) {
   }
   return -1;
 }
-int iemrtp_rtcp_atom2rtpfbtype(t_atom ap[1]) {
+int iemrtp_rtcp_atom2psfbtype(t_atom ap[1]) {
   if(A_SYMBOL == ap->a_type) {
     t_symbol*s=atom_getsymbol(ap);
     if (SELECTOR_RTCP_PSFB_PLI ==s) { return RTCP_PSFB_PLI; }
