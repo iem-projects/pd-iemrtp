@@ -298,6 +298,10 @@ static void unpackRTCP_rtcp(t_unpackRTCP*x){
   case RTCP_SDES: SETSYMBOL(ap+0, SELECTOR_RTCP_SDES); break;
   case RTCP_BYE : SETSYMBOL(ap+0, SELECTOR_RTCP_BYE); break;
   case RTCP_APP : SETSYMBOL(ap+0, SELECTOR_RTCP_APP); break;
+
+  case RTCP_RTPFB:SETSYMBOL(ap+0, SELECTOR_RTCP_RTPFB); break;
+  case RTCP_PSFB: SETSYMBOL(ap+0, SELECTOR_RTCP_PSFB); break;
+
   default:
     SETFLOAT(ap+0, type);
   }
@@ -310,7 +314,7 @@ static void unpackRTCP_rtcp(t_unpackRTCP*x){
     case RTCP_RTPFB_NACK: SETSYMBOL(ap+0, SELECTOR_RTCP_RTPFB_NACK); break;
     default             : SETFLOAT (ap+0, rtcp->subtype);
     }
-    outlet_anything(out, SELECTOR_RTCP_HEADER_FORMAT, 1, ap);
+    outlet_anything(out, SELECTOR_RTCP_HEADER_SUBTYPE, 1, ap);
     break;
   case RTCP_PSFB:
     switch(rtcp->subtype) {
@@ -320,7 +324,7 @@ static void unpackRTCP_rtcp(t_unpackRTCP*x){
     case RTCP_PSFB_AFB : SETSYMBOL(ap+0, SELECTOR_RTCP_PSFB_AFB ); break;
     default            : SETFLOAT (ap+0, rtcp->subtype);
     }
-    outlet_anything(out, SELECTOR_RTCP_HEADER_FORMAT, 1, ap);
+    outlet_anything(out, SELECTOR_RTCP_HEADER_SUBTYPE, 1, ap);
     break;
 
   default:
