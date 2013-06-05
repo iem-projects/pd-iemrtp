@@ -129,7 +129,7 @@ static void packRTCP_subtype(t_packRTCP *x, t_symbol*s, int argc, t_atom* argv) 
       pd_error(x, "'%s': invalid format %d", s->s_name, pt);
       return;
     }
-    rtcp->common.subtype=pt;
+    iemrtp_rtcp_rtpfb_changetype(rtcp, pt);
     break;
   default:
     pd_error(x, "'%s' only supported for RTPFB/PSFB packets", s->s_name);
