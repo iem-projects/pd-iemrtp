@@ -299,7 +299,10 @@ int iemrtp_rtcp2atoms(const rtcp_t*x, int argc, t_atom*argv);
  * and initializing to a minimal set
  */
 void iemrtp_rtcp_changetype(rtcp_t*rtcp, const rtcp_type_t pt);
-
+/* change type of RTPFB packet */
+void iemrtp_rtcp_rtpfb_changetype(rtcp_t*rtcp, const rtcp_rtpfb_type_t typ);
+/* change type of PSFB packet */
+void iemrtp_rtcp_psfb_changetype(rtcp_t*rtcp, const rtcp_psfb_type_t typ);
 /* parse atom into type */
 rtcp_rtpfb_type_t iemrtp_rtcp_atom2rtpfbtype(t_atom[1]);
 rtcp_psfb_type_t  iemrtp_rtcp_atom2psfbtype (t_atom[1]);

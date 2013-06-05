@@ -650,6 +650,28 @@ void iemrtp_rtcp_changetype(rtcp_t*rtcp, const rtcp_type_t pt) {
     rtcp->common.pt     =pt;
   }
 }
+void iemrtp_rtcp_rtpfb_changetype(rtcp_t*rtcp, const rtcp_rtpfb_type_t typ) {
+  if(RTCP_RTPFB!=rtcp->common.pt) {
+    iemrtp_rtcp_changetype(rtcp, RTCP_RTPFB);
+  } else {
+    if(typ==rtcp->common.count)return;
+  }
+  /* ssrc is common, so we don't need to change that */
+  iemrtp_rtcp_rtpfb_freemembers(rtcp);
+  rtcp->common.count=typ;
+}
+void iemrtp_rtcp_psfb_changetype(rtcp_t*rtcp, const rtcp_psfb_type_t typ) {
+  if(RTCP_PSFB!=rtcp->common.pt) {
+    iemrtp_rtcp_changetype(rtcp, RTCP_PSFB);
+  } else {
+    if(typ==rtcp->common.count)return;
+  }
+  /* ssrc is common, so we don't need to change that */
+  iemrtp_rtcp_psfb_freemembers(rtcp);
+  rtcp->common.count=typ;
+}
+
+
 int iemrtp_rtcp_ensureRPSI(rtcp_t*rtcp, u_int32 size) {
   if(rtcp->r.psfb.psfb.rpsi.data)
     freebytes(rtcp->r.psfb.psfb.rpsi.data, rtcp->r.psfb.psfb.rpsi.data_count );
