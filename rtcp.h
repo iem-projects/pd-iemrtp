@@ -204,8 +204,12 @@ typedef struct  rtcp_psfb_rpsi_ {
 }  rtcp_psfb_rpsi_t;
 
 typedef struct {
-  u_int32 sender_ssrc; /* receiver generating this report */
-  u_int32  media_ssrc; /* SSRC of the media we send info about (remote) */
+  u_int32 sender; /* receiver generating this report */
+  u_int32  media; /* SSRC of the media we send info about (remote) */
+} rtcp_common_fbsrc_t;
+
+typedef struct {
+  rtcp_common_fbsrc_t ssrc; /* sender/media ssrc */
   rtcp_rtpfb_common_nack_t nack;
 } rtcp_common_rtpfb_t;
 typedef union {
@@ -213,8 +217,7 @@ typedef union {
   rtcp_psfb_rpsi_t rpsi;
 } rtcp_psfb_common_t;
 typedef struct {
-  u_int32 sender_ssrc;
-  u_int32  media_ssrc;
+  rtcp_common_fbsrc_t ssrc; /* sender/media ssrc */
   rtcp_psfb_common_t psfb;
 } rtcp_common_psfb_t;
 

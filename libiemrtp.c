@@ -328,8 +328,8 @@ static u_int32 atoms2rtcp_rtpfb(rtcp_t*rtcp, const rtcp_rtpfb_type_t fmt, rtcp_c
       if(argc<8)
         return -argc;
 
-      x->sender_ssrc = atombytes_getU32(argv+0);
-      x->media_ssrc  = atombytes_getU32(argv+4);
+      x->ssrc.sender = atombytes_getU32(argv+0);
+      x->ssrc.media  = atombytes_getU32(argv+4);
       argv+=8;
       argc-=8;
       if(iemrtp_rtcp_ensureNACK(rtcp, numnacks))
@@ -351,8 +351,8 @@ static u_int32 atoms2rtcp_psfb(rtcp_t*rtcp, const rtcp_psfb_type_t fmt, rtcp_com
   switch(fmt) {
   case RTCP_PSFB_PLI :
     if(argc!=8)return -argc;
-    x->sender_ssrc = atombytes_getU32(argv+0);
-    x->media_ssrc  = atombytes_getU32(argv+4);
+    x->ssrc.sender = atombytes_getU32(argv+0);
+    x->ssrc.media  = atombytes_getU32(argv+4);
     return 8;
   case RTCP_PSFB_SLI :do {
       u_int32 numsli = (argc-8) >> 2;
@@ -360,8 +360,8 @@ static u_int32 atoms2rtcp_psfb(rtcp_t*rtcp, const rtcp_psfb_type_t fmt, rtcp_com
       if(argc<12)
         return -argc;
 
-      x->sender_ssrc = atombytes_getU32(argv+0);
-      x->media_ssrc  = atombytes_getU32(argv+4);
+      x->ssrc.sender = atombytes_getU32(argv+0);
+      x->ssrc.media  = atombytes_getU32(argv+4);
       argv+=8;
       argc-=8;
       if(iemrtp_rtcp_ensureSLI(rtcp, numsli))
@@ -571,8 +571,8 @@ int iemrtp_rtcp2atoms(const rtcp_t*x, int argc, t_atom*ap) {
       ap+=atombytes_setU32(x->r.bye.src[i]       , ap);
     break;
   case(RTCP_RTPFB):
-    ap+=atombytes_setU32(x->r.rtpfb.sender_ssrc, ap);
-    ap+=atombytes_setU32(x->r.rtpfb.media_ssrc , ap);
+    ap+=atombytes_setU32(x->r.rtpfb.ssrc.sender, ap);
+    ap+=atombytes_setU32(x->r.rtpfb.ssrc.media , ap);
     switch(x->common.count) {
     case RTCP_RTPFB_NACK:
       for(i=0; i<x->r.rtpfb.nack.nack_count; i++) {
@@ -586,8 +586,8 @@ int iemrtp_rtcp2atoms(const rtcp_t*x, int argc, t_atom*ap) {
     }
     break;
   case(RTCP_PSFB):
-    ap+=atombytes_setU32(x->r.psfb.sender_ssrc, ap);
-    ap+=atombytes_setU32(x->r.psfb.media_ssrc , ap);
+    ap+=atombytes_setU32(x->r.psfb.ssrc.sender, ap);
+    ap+=atombytes_setU32(x->r.psfb.ssrc.media , ap);
     switch(x->common.count) {
     case RTCP_PSFB_PLI: break;
     case RTCP_PSFB_SLI:

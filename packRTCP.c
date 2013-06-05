@@ -318,9 +318,9 @@ static void packRTCP_rtpfb(t_packRTCP *x, t_symbol*s0, int argc, t_atom*argv) {
         pd_error(x, "syntax: %s %s <index> <pid> <blp>", s0->s_name, s1->s_name);
       }
     } else if (SELECTOR_RTCP_RTPFB_SENDER_SSRC == s1) {
-      x->x_rtcp.r.rtpfb.sender_ssrc = GETUINT32(argc, argv);
+      x->x_rtcp.r.rtpfb.ssrc.sender = GETUINT32(argc, argv);
     } else if (SELECTOR_RTCP_RTPFB_MEDIA_SSRC == s1) {
-      x->x_rtcp.r.rtpfb.media_ssrc = GETUINT32(argc, argv);
+      x->x_rtcp.r.rtpfb.ssrc.media = GETUINT32(argc, argv);
     }
 
   } else

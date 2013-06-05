@@ -208,11 +208,11 @@ static void unpackRTCP_rtpfb(t_unpackRTCP*x){
   SETSYMBOL(ap+0, SELECTOR_RTCP_RTPFB_NACK);
 
   SETSYMBOL(ap+1, SELECTOR_RTCP_RTPFB_SENDER_SSRC);
-  SETUINT32(ap+2, rtpfb->sender_ssrc);
+  SETUINT32(ap+2, rtpfb->ssrc.sender);
   outlet_anything(out, SELECTOR_RTCP_RTPFB, 4, ap);
 
   SETSYMBOL(ap+1, SELECTOR_RTCP_RTPFB_MEDIA_SSRC);
-  SETUINT32(ap+2, rtpfb->media_ssrc);
+  SETUINT32(ap+2, rtpfb->ssrc.media);
   outlet_anything(out, SELECTOR_RTCP_RTPFB, 4, ap);
 
   for(i=0; i<nacks->nack_count; i++) {
