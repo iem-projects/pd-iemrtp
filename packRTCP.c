@@ -323,9 +323,16 @@ static void packRTCP_rtpfb(t_packRTCP *x, t_symbol*s0, int argc, t_atom*argv) {
   iemrtp_rtcp_changetype(&x->x_rtcp, RTCP_RTPFB);
   if(argc>0) {
     const t_symbol*s1=atom_getsymbol(argv);
+    int typ=iemrtp_rtcp_atom2rtpfbtype(argv);
+    if(typ<0) {
+      pd_error(x, "invalid RTPFB type '%s'", s1->s_name);
+    }
+    iemrtp_rtcp_rtpfb_changetype(&x->x_rtcp, typ);
+
     if(packRTCP_setFBSSRC(&x->x_rtcp, argc, argv))return;
     argv++; argc--;
-    if(SELECTOR_RTCP_RTPFB_NACK == s1) {
+    switch(typ) {
+    case RTCP_RTPFB_NACK:
       if(3==argc) {
         int index=atom_getint(argv+0);
         if(iemrtp_rtcp_ensureNACK(&x->x_rtcp, index+1) && setNACK(x->x_rtcp.r.rtpfb.nack.nack+index, argc-1, argv+1))
@@ -337,6 +344,7 @@ static void packRTCP_rtpfb(t_packRTCP *x, t_symbol*s0, int argc, t_atom*argv) {
       }
       pd_error(x, "syntax: %s %s <index> <pid> <blp>", s0->s_name, s1->s_name);
       return;
+    default: break;
     }
   }
   pd_error(x, "syntax: %s <field> <VAL>...", s0->s_name);
