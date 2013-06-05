@@ -108,8 +108,38 @@ int iemrtp_atoms2rtpheader(int argc, t_atom*argv, t_rtpheader*rtpheader) {
 }
 
 /* ======================================================== */
-
-
+static void iemrtp_rtcp_rtpfb_freemembers(rtcp_t*x) {
+  if(x->common.pt != RTCP_RTPFB)return;
+  switch(x->common.count) {
+  case RTCP_RTPFB_NACK:
+    if(x->r.rtpfb.nack.nack)
+      freebytes(x->r.rtpfb.nack.nack,
+                x->r.rtpfb.nack.nack_count*sizeof(rtcp_rtpfb_nack_t));
+    x->r.rtpfb.nack.nack=NULL; x->r.rtpfb.nack.nack_count=0;
+    break;
+  default: break;
+  }
+}
+static void iemrtp_rtcp_psfb_freemembers(rtcp_t*x) {
+  if(x->common.pt != RTCP_PSFB)return;
+  switch(x->common.count) {
+  case RTCP_PSFB_PLI : break;
+  case RTCP_PSFB_SLI :
+    if(x->r.psfb.psfb.sli.sli)
+      freebytes(x->r.psfb.psfb.sli.sli,
+                x->r.psfb.psfb.sli.sli_count*sizeof(rtcp_psfb_sli_t));
+    x->r.psfb.psfb.sli.sli=NULL; x->r.psfb.psfb.sli.sli_count=0;
+    break;
+  case RTCP_PSFB_RPSI:
+    if(x->r.psfb.psfb.rpsi.data)
+      freebytes(x->r.psfb.psfb.rpsi.data,
+                x->r.psfb.psfb.rpsi.data_count*sizeof(rtcp_psfb_rpsi_t));
+    x->r.psfb.psfb.rpsi.data=NULL; x->r.psfb.psfb.rpsi.data_count=0;
+  case RTCP_PSFB_AFB : /* ??? */
+    error("hmm, how to free PSFB/AFB ???");
+  default: break;
+  }
+}
 void iemrtp_rtcp_freemembers(rtcp_t*x) {
   switch(x->common.pt) {
   case(RTCP_SR  ):
@@ -141,34 +171,11 @@ void iemrtp_rtcp_freemembers(rtcp_t*x) {
     x->r.sr.rr=NULL;  x->r.sr.rr_count=0;
     break;
   case(RTCP_RTPFB ):
-    switch(x->common.count) {
-    case RTCP_RTPFB_NACK:
-      if(x->r.rtpfb.nack.nack)
-        freebytes(x->r.rtpfb.nack.nack,
-                  x->r.rtpfb.nack.nack_count*sizeof(rtcp_rtpfb_nack_t));
-      x->r.rtpfb.nack.nack=NULL; x->r.rtpfb.nack.nack_count=0;
-      break;
-    default: break;
-    }
+    iemrtp_rtcp_rtpfb_freemembers(x);
     break;
   case(RTCP_PSFB ):
-    switch(x->common.count) {
-    case RTCP_PSFB_PLI : break;
-    case RTCP_PSFB_SLI :
-      if(x->r.psfb.psfb.sli.sli)
-        freebytes(x->r.psfb.psfb.sli.sli,
-                  x->r.psfb.psfb.sli.sli_count*sizeof(rtcp_psfb_sli_t));
-      x->r.psfb.psfb.sli.sli=NULL; x->r.psfb.psfb.sli.sli_count=0;
-      break;
-    case RTCP_PSFB_RPSI:
-      if(x->r.psfb.psfb.rpsi.data)
-        freebytes(x->r.psfb.psfb.rpsi.data,
-                  x->r.psfb.psfb.rpsi.data_count*sizeof(rtcp_psfb_rpsi_t));
-      x->r.psfb.psfb.rpsi.data=NULL; x->r.psfb.psfb.rpsi.data_count=0;
-    case RTCP_PSFB_AFB : /* ??? */
-      error("hmm, how to free PSFB/AFB ???");
-    default: break;
-    }
+    iemrtp_rtcp_psfb_freemembers(x);
+    break;
   }
 }
 rtcp_psfb_type_t  iemrtp_rtcp_atom2psfbtype (t_atom ap[1]) {
