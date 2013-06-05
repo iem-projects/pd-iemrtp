@@ -344,14 +344,36 @@ static void packRTCP_rtpfb(t_packRTCP *x, t_symbol*s0, int argc, t_atom*argv) {
 static void packRTCP_psfb(t_packRTCP *x, t_symbol*s, int argc, t_atom*argv) {
   iemrtp_rtcp_changetype(&x->x_rtcp, RTCP_PSFB);
   if(argc>0) {
-    rtcp_psfb_type_t typ=iemrtp_rtcp_atom2psfbtype(argv);
+    const t_symbol*s1=atom_getsymbol(argv);
+    int typ=iemrtp_rtcp_atom2psfbtype(argv);
+    if(typ<0) {
+      pd_error(x, "invalid PSFB type '%s'", s1->s_name);
+    }
+    iemrtp_rtcp_psfb_changetype(&x->x_rtcp, typ);
+
     if(packRTCP_setFBSSRC(&x->x_rtcp, argc, argv))return;
     argv++; argc--;
     switch(typ) {
-    case RTCP_PSFB_PLI:
-    case RTCP_PSFB_SLI:
-    case RTCP_PSFB_RPSI:
-    case RTCP_PSFB_AFB:
+    case RTCP_PSFB_PLI : x->x_rtcp.common.subtype = typ; break;
+    case RTCP_PSFB_SLI : x->x_rtcp.common.subtype = typ;
+      /* syntax: PSFB SLI <index> <first> <number> <pictureid> */
+      if((argc != 4)
+         || (A_FLOAT != argv[0].a_type)
+         || (A_FLOAT != argv[1].a_type)
+         || (A_FLOAT != argv[2].a_type)
+         || (A_FLOAT != argv[3].a_type)) {
+        pd_error(x, "syntax: %s %s <index> <first> <number> <PicutreID>", s->s_name, s1->s_name);
+      } else {
+        int index=atom_getint(argv+0);
+        if(iemrtp_rtcp_ensureSLI(&x->x_rtcp, index+1)) {
+          x->x_rtcp.r.psfb.psfb.sli.sli[index].first     = atom_getint(argv+1);
+          x->x_rtcp.r.psfb.psfb.sli.sli[index].number    = atom_getint(argv+2);
+          x->x_rtcp.r.psfb.psfb.sli.sli[index].pictureid = atom_getint(argv+3);
+        }
+      }
+      break;
+    case RTCP_PSFB_RPSI: x->x_rtcp.common.subtype = typ;
+    case RTCP_PSFB_AFB : x->x_rtcp.common.subtype = typ;
     default:
       pd_error(x, "invalid field-type for '%s'", s->s_name);
     }
