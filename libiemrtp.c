@@ -391,12 +391,17 @@ static u_int32 atoms2rtcp_psfb(rtcp_t*rtcp, const rtcp_psfb_type_t fmt, rtcp_com
     break;
   case RTCP_PSFB_RPSI: do {
       u_int32 data_count = argc-2;
+      t_int tmp;
       if(argc<4)
         return -argc;
-      x->psfb.rpsi.pb = atom_getint(argv+0);
-      x->psfb.rpsi.pt = atom_getint(argv+1);
-      if (0x80 & x->psfb.rpsi.pt) // bit#9 must always be 0
+      tmp=atom_getint(argv+0);
+      if(tmp<0 || tmp>0xFF)
+	return -argc;
+      x->psfb.rpsi.pb = tmp;
+      tmp = atom_getint(argv+1);
+      if (tmp<0 || tmp>=0x80) // bit#9 must always be 0
         return -argc;
+      x->psfb.rpsi.pt = tmp;
       data_count -= (x->psfb.rpsi.pb / 8);
       if(iemrtp_rtcp_ensureRPSI(rtcp, data_count)) {
         unsigned int bits = x->psfb.rpsi.pb % 8;
