@@ -135,6 +135,7 @@ static void iemrtp_rtcp_psfb_freemembers(rtcp_t*x) {
       freebytes(x->r.psfb.psfb.rpsi.data,
                 x->r.psfb.psfb.rpsi.data_count*sizeof(rtcp_psfb_rpsi_t));
     x->r.psfb.psfb.rpsi.data=NULL; x->r.psfb.psfb.rpsi.data_count=0;
+    break;
   case RTCP_PSFB_AFB : /* ??? */
     error("hmm, how to free PSFB/AFB ???");
   default: break;
