@@ -104,10 +104,11 @@ static void packet_destroy(t_rtpbuffer_packet*pkt) {
 
 static void rtpbuffer_freepackets(t_rtpbuffer*x) {
   t_rtpbuffer_packet*pkt;
+  t_rtpbuffer_packet*nxt=NULL;
   t_atom ap[1];
-  for(pkt=x->x_start; pkt; pkt=pkt->next) {
+  for(pkt=x->x_start; pkt; pkt=nxt) {
     u_int32 ts=pkt->timestamp;
-    x->x_start=pkt;
+    nxt=pkt->next;
     packet_destroy(pkt);
     x->x_packetcount--;
     rtpbuffer_info_deleted(x, ts);
