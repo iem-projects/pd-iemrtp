@@ -419,6 +419,7 @@ static void packRTCP_psfb(t_packRTCP *x, t_symbol*s, int argc, t_atom*argv) {
           x->x_rtcp.r.psfb.psfb.rpsi.data[i]=atom_getint(argv++);
         }
       }
+      break;
     case RTCP_PSFB_AFB : iemrtp_rtcp_rtpfb_changetype(&x->x_rtcp, typ);
       pd_error(x, "%s/%s not yet implemented", s->s_name, s1->s_name);
       return;
