@@ -238,10 +238,10 @@ static void unpackRTCP_psfb(t_unpackRTCP*x){
 #warning FIXME
 
   switch(rtcp->common.subtype) {
-  case RTCP_PSFB_PLI : SETSYMBOL(ap+0, SELECTOR_RTCP_PSFB_PLI );
-  case RTCP_PSFB_SLI : SETSYMBOL(ap+0, SELECTOR_RTCP_PSFB_SLI );
-  case RTCP_PSFB_RPSI: SETSYMBOL(ap+0, SELECTOR_RTCP_PSFB_RPSI);
-  case RTCP_PSFB_AFB : SETSYMBOL(ap+0, SELECTOR_RTCP_PSFB_AFB );
+  case RTCP_PSFB_PLI : SETSYMBOL(ap+0, SELECTOR_RTCP_PSFB_PLI ); break;
+  case RTCP_PSFB_SLI : SETSYMBOL(ap+0, SELECTOR_RTCP_PSFB_SLI ); break;
+  case RTCP_PSFB_RPSI: SETSYMBOL(ap+0, SELECTOR_RTCP_PSFB_RPSI); break;
+  case RTCP_PSFB_AFB : SETSYMBOL(ap+0, SELECTOR_RTCP_PSFB_AFB ); break;
   default:
     pd_error(x, "unkown %s packet with subtype %d",
              SELECTOR_RTCP_PSFB->s_name,
