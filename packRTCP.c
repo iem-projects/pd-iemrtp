@@ -193,7 +193,7 @@ int setNACK(rtcp_rtpfb_nack_t*nack, int argc, t_atom*argv) {
 static void packRTCP_sr(t_packRTCP *x, t_symbol*s, int argc, t_atom*argv) {
   iemrtp_rtcp_changetype(&x->x_rtcp, RTCP_SR);
 
-  if(argc>2) {
+  if(argc>1) {
     t_symbol*s1=atom_getsymbol(argv);
     if(SELECTOR_RTCP_SR_SSRC==s1) {
       x->x_rtcp.r.sr.ssrc=GETUINT32(argc-1, argv+1);
@@ -232,7 +232,7 @@ static void packRTCP_sr(t_packRTCP *x, t_symbol*s, int argc, t_atom*argv) {
 static void packRTCP_rr(t_packRTCP *x, t_symbol*s, int argc, t_atom*argv) {
   iemrtp_rtcp_changetype(&x->x_rtcp, RTCP_RR);
 
-  if(argc>2) {
+  if(argc>1) {
     t_symbol*s1=atom_getsymbol(argv);
     if(SELECTOR_RTCP_RR_SSRC==s1) {
       x->x_rtcp.r.rr.ssrc=GETUINT32(argc-1, argv+1);
@@ -259,7 +259,7 @@ static void packRTCP_rr(t_packRTCP *x, t_symbol*s, int argc, t_atom*argv) {
 
 static void packRTCP_sdes(t_packRTCP *x, t_symbol*s, int argc, t_atom*argv) {
   iemrtp_rtcp_changetype(&x->x_rtcp, RTCP_SDES);
-  if(argc>2) {
+  if(argc>1) {
     t_symbol*s1=atom_getsymbol(argv);
     if(SELECTOR_RTCP_SDES_SRC==s1) {
       x->x_rtcp.r.sdes.src=GETUINT32(argc-1, argv+1);
