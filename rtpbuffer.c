@@ -276,5 +276,5 @@ void rtpbuffer_setup(void)
   /* query <TShi> <TSlo>: output packet for TS
    * query <TS0hi> <TS0lo> <TS1hi> <TS1lo>: output packets between TS0 and TS1 (incl.)
    */
-  class_addmethod(rtpbuffer_class, (t_method)rtpbuffer_queryTSmsg, gensym("queryTS"), A_GIMME);
+  class_addmethod(rtpbuffer_class, (t_method)rtpbuffer_queryTSmsg, gensym("queryTS"), A_GIMME, A_NULL);
 }
