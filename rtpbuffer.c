@@ -56,8 +56,8 @@ typedef struct _rtpbuffer
 
 static u_int32 rtpbuffer_getpktdur(t_rtpbuffer*x) {
   u_int32 result=0;
-  if(x->x_packetduration>0)
-    result=x->x_packetduration;
+  if(x->x_packetduration>1)
+    result=x->x_packetduration-1;
   x->x_packetduration=0;
   return result;
 }
