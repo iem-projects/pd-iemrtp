@@ -152,8 +152,9 @@ static t_rtpbuffer_packet* packet_afterTS(t_rtpbuffer_packet*pkt, const u_int32 
 static void rtpbuffer_queryTS(t_rtpbuffer*x, const u_int32 ts0, const u_int32 ts1){
   t_rtpbuffer_packet*pkt=NULL;
   for(pkt=x->x_start; pkt; pkt=pkt->next) {
-    if(NULL!=packet_matchTSrange(pkt, ts0, ts1))
+    if(NULL!=packet_matchTSrange(pkt, ts0, ts1)) {
       rtpbuffer_pktout(x, pkt);
+    }
   }
 }
 /* args:

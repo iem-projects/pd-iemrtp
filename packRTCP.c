@@ -239,7 +239,7 @@ static void packRTCP_rr(t_packRTCP *x, t_symbol*s, int argc, t_atom*argv) {
     } else if(A_FLOAT==argv->a_type) { // 'RR <id> <VALhi> <VALlo>'
       int index;
       if(argc<3) {
-        pd_error(x, "usage: %s <#> <type> <VALhi> <VALlo>...", s->s_name);
+        pd_error(x, "usage: %s <#> <type> <VALhi> <VALlo> ...", s->s_name);
         return;
       }
       index=atom_getint(argv);
@@ -426,9 +426,8 @@ static void packRTCP_psfb(t_packRTCP *x, t_symbol*s, int argc, t_atom*argv) {
     default:
       pd_error(x, "invalid field-type '%s' for '%s'", s->s_name, s1->s_name);
     }
-
   } else
-  pd_error(x, "syntax: %s <field> <VALhi> <VALlo>", s->s_name);
+    pd_error(x, "syntax: %s <field> <VALhi> <VALlo>", s->s_name);
 }
 static t_packRTCP *packRTCP_new(void)
 {

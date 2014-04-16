@@ -265,19 +265,19 @@ static void tsrange2seq_add(t_tsrange2seq *x,
         if(prior==x->x_start)x->x_start=ts;
 
         tsrange_destroy(prior);
-      } else {
+      } else { /* seq != prior->seq */
         /* insert element after prior */
         tsrange_addTail(prior, ts);
         x->x_stop =tsrange_last(x->x_stop);
         x->x_start=tsrange_first(x->x_start);
       }
-    } else {
+    } else { /* !prior */
       /* new first element */
       tsrange_addHead(x->x_start, ts);
       x->x_start=tsrange_first(x->x_start);
     }
     x->x_stop=tsrange_last(x->x_stop);
-  } else {
+  } else { /* !x->x_stop */
     x->x_start = x->x_stop = ts;
   }
 }
