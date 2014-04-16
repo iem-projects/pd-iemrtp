@@ -7,7 +7,7 @@ LIBRARY_NAME = iemrtp
 # variable, help files will be included automatically, and for GUI
 # objects, the matching .tcl file too
 SOURCES = unpackRTP.c \
-	rtpbuffer.c tsrange2seq.c \
+	rtpbuffer.c \
 	unpackRTCP.c packRTCP.c \
 	rtpL16pay~.c L16decode.c
 
